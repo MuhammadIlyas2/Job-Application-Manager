@@ -1,22 +1,39 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from config import Config
+from flask_jwt_extended import JWTManager, get_jwt_identity, verify_jwt_in_request
 from extensions import db
 from routes.auth import auth_bp
 from routes.jobs import jobs_bp
+from flask_jwt_extended import decode_token
+
 
 app = Flask(__name__)
-app.config.from_object(Config)
-CORS(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:ChessFun%402@localhost/jam_db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['JWT_SECRET_KEY'] = 'your_secret_key_here'
 
 db.init_app(app)
+jwt = JWTManager(app)
 
-# Register blueprints
+# ✅ Ensure JWT is verified in every request
+@app.before_request
+def log_request_info():
+    print(f"🔥 Incoming Request: {request.method} {request.url}")
+    print(f"🔹 Headers: {dict(request.headers)}")
+    if "Authorization" in request.headers:
+        token = request.headers["Authorization"].split(" ")[1]  # Extract token
+        try:
+            decoded_token = decode_token(token)  # ✅ Decode token to verify its contents
+            print(f"✅ JWT Decoded: {decoded_token}")
+        except Exception as e:
+            print(f"❌ JWT Error: {str(e)}")
+
+# ✅ CORS Configuration
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}}, supports_credentials=True)
+
+# Register Blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(jobs_bp, url_prefix='/api/jobs')
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  # Ensures tables are created
-    app.run(debug=True)
-
+    app.run(debug=True, host='0.0.0.0', port=5000)

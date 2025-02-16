@@ -1,0 +1,49 @@
+.job-form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 20px;
+    background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .job-form-container form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 500px;
+  }
+  
+  .job-form-container label {
+    margin-top: 10px;
+    color: #666;
+  }
+  
+  .job-form-container input, .job-form-container select, .job-form-container textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .job-form-container button {
+    padding: 10px;
+    width: 100%;
+    background-color: #22c1c3;
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .job-form-container button:hover {
+    background-color: #2EE59D;
+  }
+  

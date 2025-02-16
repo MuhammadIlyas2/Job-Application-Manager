@@ -1,1 +1,32 @@
-<p>job-list works!</p>
+<div class="job-list-container">
+    <h2>Job Applications</h2>
+    <button routerLink="/job-form">Add New Job</button>
+    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+    <div *ngIf="jobs.length === 0">
+      <p>No job applications found.</p>
+    </div>
+    <table *ngIf="jobs.length > 0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Job Title</th>
+          <th>Company</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let job of jobs">
+          <td>{{ job.id }}</td>
+          <td>{{ job.job_title }}</td>
+          <td>{{ job.company }}</td>
+          <td>{{ job.status }}</td>
+          <td>
+            <button (click)="goToJobDetails(job.id)">Details</button>
+            <button [routerLink]="['/job-form', job.id]">Edit</button>
+            <button (click)="deleteJob(job.id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>  

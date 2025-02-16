@@ -1,0 +1,94 @@
+<!-- In your component template -->
+<div class="container">
+    <div class="toggle-buttons">
+        <button class="toggle-btn" (click)="toggleForm(false)">Login</button>
+        <button class="toggle-btn" (click)="toggleForm(true)">Signup</button>
+    </div>
+
+    <div class="login-signup-wrapper" [ngClass]="{ 'show-signup': isSignup }">
+        <!-- Login Form -->
+        <div class="form-container login-container">
+            <div class="form-content">
+                <div class="header-group">
+                    <h1 class="main-title">Job Application Manager</h1>
+                    <h2>Access Your Dashboard</h2>
+                    <p>Sign in to track and manage your job applications</p>
+                </div>
+
+                <form (ngSubmit)="login()">
+                    <!-- Keep existing form inputs -->
+                    <div class="input-group">
+                        <label for="username_or_email">Username or Email</label>
+                        <input type="text" id="username_or_email" [(ngModel)]="credentials.username_or_email" name="username_or_email" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" [(ngModel)]="credentials.password" name="password" required>
+                    </div>
+
+                    <div *ngIf="errorMessage" class="error">
+                        {{ errorMessage }}
+                    </div>
+
+                    <button type="submit">Login</button>
+
+                    <div class="form-footer">
+                        <p class="switch-text">
+                            New user? 
+                            <a (click)="toggleForm(true)">Create account</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+
+            <footer>
+                <p>© 2025 JobTrack | All rights reserved</p>
+            </footer>
+        </div>
+
+        <!-- Signup Form -->
+        <div class="form-container signup-container">
+            <div class="form-content">
+                <div class="header-group">
+                    <h1 class="main-title">Job Application Manager</h1>
+                    <h2>Start Your Journey</h2>
+                    <p>Create an account to organize your job search effectively</p>
+                </div>
+
+                <form (ngSubmit)="signup()">
+                    <!-- Keep existing form inputs -->
+                    <div class="input-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" [(ngModel)]="userData.username" name="username" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" [(ngModel)]="userData.email" name="email" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" [(ngModel)]="userData.password" name="password" required>
+                    </div>
+
+                    <button type="submit">Sign Up</button>
+
+                    <div class="form-footer">
+                        <p class="switch-text">
+                            Existing user? 
+                            <a (click)="toggleForm(false)">Login here</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+
+            <footer>
+                <p>© 2025 JobTrack | All rights reserved</p>
+            </footer>
+        </div>
+
+        <div class="image-container"></div>
+    </div>
+</div>

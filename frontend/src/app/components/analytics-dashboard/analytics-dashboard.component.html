@@ -1,0 +1,9 @@
+<div class="analytics-dashboard">
+    <h2>Analytics Dashboard</h2>
+    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+    <div *ngIf="analyticsData">
+      <!-- You can integrate chart components here (e.g., using ng2-charts) -->
+      <pre>{{ analyticsData | json }}</pre>
+    </div>
+  </div>
+  

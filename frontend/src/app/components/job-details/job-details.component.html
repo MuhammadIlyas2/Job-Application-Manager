@@ -1,1 +1,12 @@
-<p>job-details works!</p>
+<div class="job-details-container" *ngIf="job">
+    <h2>Job Application Details</h2>
+    <p><strong>Job Title:</strong> {{ job.job_title }}</p>
+    <p><strong>Company:</strong> {{ job.company }}</p>
+    <p><strong>Role Category:</strong> {{ job.role_category }}</p>
+    <p><strong>Status:</strong> {{ job.status }}</p>
+    <p><strong>Feedback:</strong> {{ job.feedback }}</p>
+    <p><strong>Applied Date:</strong> {{ job.applied_date | date }}</p>
+    <button (click)="goBack()">Back to List</button>
+  </div>
+  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+  
