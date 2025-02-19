@@ -19,18 +19,23 @@ def signup():
     username = data['username'].strip()
     email = data['email'].strip()
     password = data['password']
+    fullname = data['fullname']
 
     print(f"🔍 Checking if user exists: {username}, {email}")
 
-    if User.query.filter((User.username == username) | (User.email == email)).first():
-        print("❌ User already exists")
-        return jsonify({'message': 'User already exists'}), 400
+    if User.query.filter(User.username == username).first():  # ✅ Remove extra ()
+      print("❌ Username already exists")
+      return jsonify({'message': 'Username already exists'}), 400
+
+    elif User.query.filter(User.email == email).first():  # ✅ Use `elif` instead of `else if`
+      print("❌ Email already exists")
+      return jsonify({'message': 'Email already exists'}), 400
 
     # Hash the password
     password_hash = generate_password_hash(password)
     
     try:
-        new_user = User(username=username, email=email, password_hash=password_hash)
+        new_user = User(username=username, email=email, password_hash=password_hash, fullname=fullname)
         db.session.add(new_user)
         db.session.commit()
         print(f"✅ User created successfully: {username}")

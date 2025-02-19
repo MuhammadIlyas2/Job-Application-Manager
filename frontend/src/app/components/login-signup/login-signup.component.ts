@@ -17,9 +17,19 @@ export class LoginSignupComponent implements OnInit {
   errorMessage = '';
 
   userData = {
+    fullName: '',
     username: '',
     email: '',
     password: '',
+    confirmPassword: ''
+  };
+
+  formErrors = {
+    fullName: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
   };
 
   credentials = {
@@ -45,7 +55,60 @@ export class LoginSignupComponent implements OnInit {
   }
 
   signup(): void {
-    this.authService.signup(this.userData).subscribe(
+    // Reset errors
+    this.formErrors = {
+      fullName: '',
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    };
+
+    let isValid = true;
+
+    // Validation
+    if (!this.userData.fullName) {
+      this.formErrors.fullName = 'Full name is required';
+      isValid = false;
+    }
+
+    if (!this.userData.username) {
+      this.formErrors.username = 'Username is required';
+      isValid = false;
+    }
+
+    if (!this.userData.email) {
+      this.formErrors.email = 'Email is required';
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.userData.email)) {
+      this.formErrors.email = 'Invalid email format';
+      isValid = false;
+    }
+
+    if (!this.userData.password) {
+      this.formErrors.password = 'Password is required';
+      isValid = false;
+    } else if (this.userData.password.length < 8) {
+      this.formErrors.password = 'Password must be at least 8 characters';
+      isValid = false;
+    }
+
+    if (this.userData.password !== this.userData.confirmPassword) {
+      this.formErrors.confirmPassword = 'Passwords do not match';
+      isValid = false;
+    }
+
+    if (!isValid) return;
+
+    // Prepare backend payload
+    const payload = {
+      fullname: this.userData.fullName,
+      username: this.userData.username,
+      email: this.userData.email,
+      password: this.userData.password
+    };
+
+    this.authService.signup(payload).subscribe(
       res => {
         console.log('Signup successful', res);
         this.isSignup = false;

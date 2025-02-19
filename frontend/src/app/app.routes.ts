@@ -1,6 +1,4 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './components/login/login.component';
-import { SignupComponent } from './components/signup/signup.component';
 import { JobListComponent } from './components/job-list/job-list.component';
 import { JobFormComponent } from './components/job-form/job-form.component';
 import { JobDetailsComponent } from './components/job-details/job-details.component';

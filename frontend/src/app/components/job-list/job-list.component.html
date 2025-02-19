@@ -12,6 +12,7 @@
           <th>Job Title</th>
           <th>Company</th>
           <th>Status</th>
+          <th>Feedback</th>  <!-- ✅ New column -->
           <th>Actions</th>
         </tr>
       </thead>
@@ -21,6 +22,7 @@
           <td>{{ job.job_title }}</td>
           <td>{{ job.company }}</td>
           <td>{{ job.status }}</td>
+          <td>{{ job.feedback || 'No feedback yet' }}</td> <!-- ✅ Display feedback if available -->
           <td>
             <button (click)="goToJobDetails(job.id)">Details</button>
             <button [routerLink]="['/job-form', job.id]">Edit</button>
@@ -29,4 +31,4 @@
         </tr>
       </tbody>
     </table>
-  </div>  
+</div>
