@@ -1,34 +1,46 @@
 <div class="job-list-container">
     <h2>Job Applications</h2>
-    <button routerLink="/job-form">Add New Job</button>
-    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
-    <div *ngIf="jobs.length === 0">
-      <p>No job applications found.</p>
+    
+    <div class="table-controls">
+      <button routerLink="/job-form">➕ Add New Job</button>
+      <button (click)="exportToExcel()" class="excel-button">📂 Export to Excel</button>
     </div>
-    <table *ngIf="jobs.length > 0">
+  
+    <table class="job-table">
       <thead>
         <tr>
-          <th>ID</th>
+          <th>#</th>
           <th>Job Title</th>
           <th>Company</th>
           <th>Status</th>
-          <th>Feedback</th>  <!-- ✅ New column -->
+          <th>Feedback</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let job of jobs">
-          <td>{{ job.id }}</td>
+        <tr *ngFor="let job of jobs" class="clickable-row" (click)="goToJobDetails(job.id, $event)">
+          <td>{{ jobs.indexOf(job) + 1 }}</td>
           <td>{{ job.job_title }}</td>
           <td>{{ job.company }}</td>
-          <td>{{ job.status }}</td>
-          <td>{{ job.feedback || 'No feedback yet' }}</td> <!-- ✅ Display feedback if available -->
-          <td>
-            <button (click)="goToJobDetails(job.id)">Details</button>
-            <button [routerLink]="['/job-form', job.id]">Edit</button>
-            <button (click)="deleteJob(job.id)">Delete</button>
+          <td><app-status-pill [status]="job.status"></app-status-pill></td>
+          <td>{{ job.feedback || 'No feedback yet' }}</td>
+          <td class="action-buttons">
+            <button (click)="editJob(job.id, $event)" class="edit-button">✏️ Edit</button>
+            <button (click)="deleteJob(job.id, $event)" class="delete-button">🗑️ Delete</button>
           </td>
         </tr>
       </tbody>
     </table>
-</div>
+  
+    <!-- Pagination -->
+    <div class="pagination-controls">
+      <button (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+      <span *ngFor="let page of [].constructor(totalPages); let i = index" 
+            (click)="goToPage(i+1)" 
+            [class.active]="i+1 === currentPage">
+        {{ i+1 }}
+      </span>
+      <button (click)="nextPage()" [disabled]="currentPage === totalPages">Next</button>
+    </div>
+  </div>
+  

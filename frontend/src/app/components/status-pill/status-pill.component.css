@@ -1,0 +1,37 @@
+.status-pill {
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: capitalize;
+  }
+  
+  .status-applied {
+    background: lightblue;
+    color: navy;
+  }
+  
+  .status-interview {
+    background: orange;
+    color: white;
+  }
+  
+  .status-offer {
+    background: green;
+    color: white;
+  }
+  
+  .status-rejected {
+    background: red;
+    color: white;
+  }
+  
+  .status-default {
+    background: gray;
+    color: white;
+  }
+  
+  .status-accepted {
+    background: green;
+    color: white;
+  }

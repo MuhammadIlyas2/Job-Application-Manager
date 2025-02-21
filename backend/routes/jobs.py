@@ -1,3 +1,4 @@
+from math import ceil
 from flask import Blueprint, request, jsonify
 from extensions import db
 from models import JobApplication, User  # ✅ Import User model
@@ -54,9 +55,34 @@ def create_or_list_jobs():
 @jobs_bp.route('/', methods=['GET'])
 @jwt_required()
 def list_jobs():
-    current_user_id = int(get_jwt_identity())  # 🔹 Convert back to integer
-    jobs = JobApplication.query.filter_by(user_id=current_user_id).all()
-    return jsonify([job.serialize() for job in jobs]), 200
+    """Retrieve paginated job applications for the logged-in user."""
+    try:
+        current_user_id = get_jwt_identity()
+
+        # Pagination parameters
+        page = request.args.get('page', default=1, type=int)
+        limit = request.args.get('limit', default=5, type=int)  # Default to 5 jobs per page
+
+        total_jobs = JobApplication.query.filter_by(user_id=current_user_id).count()
+        total_pages = ceil(total_jobs / limit)
+
+        jobs = JobApplication.query.filter_by(user_id=current_user_id)\
+            .paginate(page=page, per_page=limit, error_out=False)
+
+        job_list = [{
+            'id': job.id,
+            'job_title': job.job_title,
+            'company': job.company,
+            'status': job.status,
+            'feedback': job.feedback
+        } for job in jobs.items]
+
+        return jsonify({
+            'jobs': job_list,
+            'totalPages': total_pages
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @jobs_bp.route('/<int:job_id>', methods=['GET'])
