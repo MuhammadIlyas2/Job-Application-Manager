@@ -1,46 +1,45 @@
-<div class="job-list-container">
-    <h2>Job Applications</h2>
-    
-    <div class="table-controls">
-      <button routerLink="/job-form">➕ Add New Job</button>
-      <button (click)="exportToExcel()" class="excel-button">📂 Export to Excel</button>
-    </div>
-  
-    <table class="job-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Job Title</th>
-          <th>Company</th>
-          <th>Status</th>
-          <th>Feedback</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let job of jobs" class="clickable-row" (click)="goToJobDetails(job.id, $event)">
-          <td>{{ jobs.indexOf(job) + 1 }}</td>
-          <td>{{ job.job_title }}</td>
-          <td>{{ job.company }}</td>
-          <td><app-status-pill [status]="job.status"></app-status-pill></td>
-          <td>{{ job.feedback || 'No feedback yet' }}</td>
-          <td class="action-buttons">
-            <button (click)="editJob(job.id, $event)" class="edit-button">✏️ Edit</button>
-            <button (click)="deleteJob(job.id, $event)" class="delete-button">🗑️ Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  
-    <!-- Pagination -->
-    <div class="pagination-controls">
-      <button (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
-      <span *ngFor="let page of [].constructor(totalPages); let i = index" 
-            (click)="goToPage(i+1)" 
-            [class.active]="i+1 === currentPage">
-        {{ i+1 }}
-      </span>
-      <button (click)="nextPage()" [disabled]="currentPage === totalPages">Next</button>
-    </div>
+<div #tableContainer class="job-list-container">
+  <h2>Job Applications</h2>
+
+  <div class="table-controls">
+    <button routerLink="/job-form">➕ Add New Job</button>
+    <button (click)="exportToExcel()" class="excel-button">📂 Export to Excel</button>
   </div>
-  
+
+  <table class="job-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Job Title</th>
+        <th>Company</th>
+        <th>Status</th>
+        <th>Feedback</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let job of jobs; let i = index" class="clickable-row" (click)="goToJobDetails(job.id, $event)">
+        <td>{{ (currentPage - 1) * jobsPerPage + i + 1 }}</td>
+        <td>{{ job.job_title }}</td>
+        <td>{{ job.company }}</td>
+        <td><app-status-pill [status]="job.status"></app-status-pill></td>
+        <td>{{ job.feedback || 'No feedback yet' }}</td>
+        <td class="action-buttons">
+          <button (click)="editJob(job.id, $event)" class="edit-button">✏️ Edit</button>
+          <button (click)="deleteJob(job.id, $event)" class="delete-button">🗑️ Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <div class="pagination-controls">
+    <button (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+    <span *ngFor="let page of [].constructor(totalPages); let i = index" 
+          (click)="goToPage(i+1)" 
+          [class.active]="i+1 === currentPage">
+      {{ i+1 }}
+    </span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages">Next</button>
+  </div>
+</div>

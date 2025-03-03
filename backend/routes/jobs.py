@@ -1,9 +1,11 @@
 from math import ceil
 from flask import Blueprint, request, jsonify
 from extensions import db
-from models import JobApplication, User  # ✅ Import User model
-from flask_jwt_extended import jwt_required, get_jwt_identity  
-from flask_cors import cross_origin  # ✅ Import CORS decorator
+from models import JobApplication, User  # ✅ Import necessary models
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_cors import cross_origin
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import text
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -48,87 +50,136 @@ def create_or_list_jobs():
 
     elif request.method == 'GET':
         """List jobs for the logged-in user"""
-        current_user_id = get_jwt_identity()
-        jobs = JobApplication.query.filter_by(user_id=current_user_id).all()
-        return jsonify([job.serialize() for job in jobs]), 200
+        try:
+            current_user_id = get_jwt_identity()
+            page = request.args.get('page', default=1, type=int)
+            limit = request.args.get('limit', default=5, type=int)
+            offset = (page - 1) * limit
 
-@jobs_bp.route('/', methods=['GET'])
-@jwt_required()
-def list_jobs():
-    """Retrieve paginated job applications for the logged-in user."""
+            print(f"🔍 Fetching jobs for user {current_user_id}, Page: {page}, Limit: {limit}, Offset: {offset}")
+
+            query = text("""
+                SELECT 
+                    ja.id, ja.job_title, ja.company, ja.status, ja.general_notes, ja.applied_date,
+                    COALESCE(f.notes, 'No feedback yet') AS feedback
+                FROM job_application ja
+                LEFT JOIN feedback f ON ja.id = f.job_id
+                WHERE ja.user_id = :user_id
+                LIMIT :limit OFFSET :offset;
+            """)
+
+            results = db.session.execute(query, {
+                "user_id": current_user_id,
+                "limit": limit,
+                "offset": offset
+            }).fetchall()
+
+            print(f"🔍 Query Results Count: {len(results)}")  # Debugging statement
+
+            job_list = [{
+                "id": row[0],  
+                "job_title": row[1],  
+                "company": row[2],  
+                "status": row[3],  
+                "general_notes": row[4],  
+                "applied_date": row[5].strftime("%Y-%m-%d") if row[5] else None,  
+                "feedback": row[6]  
+            } for row in results]
+
+            return jsonify({"jobs": job_list}), 200
+
+        except Exception as e:
+            print(f"❌ ERROR in `create_or_list_jobs`: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+
+    return jsonify({'message': 'Invalid request method'}), 405
+
+@jobs_bp.route('/jobs/<int:job_id>', methods=['GET'])
+def get_job(job_id):
+    """Retrieve a single job application with feedback."""
     try:
-        current_user_id = get_jwt_identity()
+        query = text("""
+        SELECT 
+            ja.id, ja.job_title, ja.company, ja.status, ja.general_notes, ja.applied_date,
+            COALESCE(f.notes, 'No feedback yet') AS feedback
+        FROM job_application ja
+        LEFT JOIN feedback f ON ja.id = f.job_id
+        WHERE ja.id = :job_id;
+        """)
 
-        # Pagination parameters
-        page = request.args.get('page', default=1, type=int)
-        limit = request.args.get('limit', default=5, type=int)  # Default to 5 jobs per page
+        result = db.session.execute(query, {"job_id": job_id}).fetchone()
 
-        total_jobs = JobApplication.query.filter_by(user_id=current_user_id).count()
-        total_pages = ceil(total_jobs / limit)
+        print(f"🔍 Query Result for Job ID {job_id}: {result}")  # Debugging
 
-        jobs = JobApplication.query.filter_by(user_id=current_user_id)\
-            .paginate(page=page, per_page=limit, error_out=False)
+        if not result:
+            return jsonify({"message": "Job not found"}), 404
 
-        job_list = [{
-            'id': job.id,
-            'job_title': job.job_title,
-            'company': job.company,
-            'status': job.status,
-            'feedback': job.feedback
-        } for job in jobs.items]
+        job_data = {
+            "id": result[0],  
+            "job_title": result[1],  
+            "company": result[2],  
+            "status": result[3],  
+            "general_notes": result[4],  
+            "applied_date": result[5].strftime("%Y-%m-%d") if result[5] else None,  
+            "feedback": result[6]  
+        }
 
-        return jsonify({
-            'jobs': job_list,
-            'totalPages': total_pages
-        }), 200
+        return jsonify(job_data), 200
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"❌ ERROR in `get_job`: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
-
-@jobs_bp.route('/<int:job_id>', methods=['GET'])
+@jobs_bp.route('/jobs/<int:job_id>/feedback', methods=['POST', 'PUT'])
 @jwt_required()
-def get_job_by_id(job_id):
-    """Retrieve a job application by ID"""
-    job = JobApplication.query.get(job_id)
-    if not job:
-        return jsonify({'message': 'Job not found'}), 404
-    return jsonify(job.serialize()), 200
-
-@jobs_bp.route('/<int:job_id>', methods=['PUT'])
-@jwt_required()
-def update_job(job_id):
-    """Update an existing job application"""
-    job = JobApplication.query.get(job_id)
-    if not job:
-        return jsonify({'message': 'Job not found'}), 404
-
-    data = request.get_json()
-    job.status = data.get('status', job.status)
-
-    if job.status in ['Accepted', 'Rejected']:
-        if 'feedback' not in data or not data['feedback']:
-            return jsonify({'message': 'Feedback is required for this status'}), 400
-        job.feedback = data['feedback']
-
+def handle_feedback(job_id):
+    """Create or update feedback for a job application."""
     try:
+        data = request.get_json()
+
+        # ✅ Check if job exists
+        job_check_query = text("SELECT id FROM job_application WHERE id = :job_id")
+        job_exists = db.session.execute(job_check_query, {"job_id": job_id}).fetchone()
+        if not job_exists:
+            return jsonify({"message": "Job not found"}), 404
+
+        # ✅ Check if feedback already exists
+        feedback_check_query = text("SELECT id FROM feedback WHERE job_id = :job_id")
+        feedback_exists = db.session.execute(feedback_check_query, {"job_id": job_id}).fetchone()
+
+        if request.method == 'POST':
+            if feedback_exists:
+                return jsonify({"message": "Feedback already exists for this job"}), 400
+
+            insert_query = text("""
+            INSERT INTO feedback (job_id, category_id, notes)
+            VALUES (:job_id, :category_id, :notes);
+            """)
+            db.session.execute(insert_query, {
+                "job_id": job_id,
+                "category_id": data["category_id"],
+                "notes": data.get("notes", "")
+            })
+
+        elif request.method == 'PUT':
+            if not feedback_exists:
+                return jsonify({"message": "Feedback not found"}), 404
+
+            update_query = text("""
+            UPDATE feedback
+            SET category_id = :category_id, notes = :notes
+            WHERE job_id = :job_id;
+            """)
+            db.session.execute(update_query, {
+                "job_id": job_id,
+                "category_id": data["category_id"],
+                "notes": data.get("notes", "")
+            })
+
         db.session.commit()
-        return jsonify({'message': 'Job updated successfully', 'job': job.serialize()}), 200
+        return jsonify({"message": "Feedback saved successfully"}), 200
+
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
-
-@jobs_bp.route('/<int:job_id>', methods=['DELETE'])
-@jwt_required()
-def delete_job(job_id):
-    """Delete a job application"""
-    job = JobApplication.query.get(job_id)
-    if not job:
-        return jsonify({'message': 'Job not found'}), 404
-
-    try:
-        db.session.delete(job)
-        db.session.commit()
-        return jsonify({'message': 'Job deleted successfully'}), 200
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        print(f"❌ ERROR in `handle_feedback`: {str(e)}")
+        return jsonify({"error": str(e)}), 500

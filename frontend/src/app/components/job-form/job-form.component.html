@@ -1,45 +1,91 @@
+<!-- job-form.component.html -->
 <div class="job-form-container">
-    <h2>{{ isEditMode ? 'Edit Job' : 'New Job' }}</h2>
-    <form (ngSubmit)="submitForm()">
-      <label>Role Type:</label>
-      <select [(ngModel)]="job.roleType" name="roleType" required>
-        <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
-      </select>
-  
-      <label>Job Title:</label>
-      <input type="text" [(ngModel)]="job.jobTitle" name="jobTitle" required>
-  
-      <label>Company:</label>
+  <h2>{{ isEditMode ? 'Edit Job Application' : 'New Job Application' }}</h2>
+
+  <form (ngSubmit)="submitForm()">
+    <input type="hidden" [(ngModel)]="job.user_id" name="user_id">
+
+    <div class="form-group">
+      <label>Job Title *</label>
+      <input type="text" [(ngModel)]="job.job_title" name="job_title" required>
+    </div>
+
+    <div class="form-group">
+      <label>Company *</label>
       <input type="text" [(ngModel)]="job.company" name="company" required>
-  
-      <label>Status:</label>
-      <select [(ngModel)]="job.status" name="status">
-        <option value="applied">Applied</option>
-        <option value="Interview">Interview</option>
-        <option value="Offer">Offer</option>
-        <option value="Rejected">Rejected</option>
-        <option value="Accepted">Accepted</option>
+    </div>
+
+    <div class="form-group">
+      <label>Role Category</label>
+      <select [(ngModel)]="job.role_category" name="role_category">
+        <option value="">Select Category</option>
+        <option *ngFor="let role of roles" [value]="role.name">
+          {{ role.name }}
+        </option>
       </select>
-  
-      <div *ngIf="job.status === 'Rejected' || job.status === 'Offer'">
-        <label>Rejection Reason:</label>
-        <select [(ngModel)]="job.feedback.rejectionReason" name="rejectionReason">
-          <option value="Technical">Technical Skills</option>
-          <option value="Cultural Fit">Cultural Fit</option>
-          <option value="Experience Gap">Experience Gap</option>
+    </div>
+
+    <div class="form-group">
+      <label>Status *</label>
+      <select [(ngModel)]="job.status" name="status" required>
+        <option *ngFor="let status of statuses" [value]="status">
+          {{ status | titlecase }}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Applied Date</label>
+      <input type="date" [(ngModel)]="job.applied_date" name="applied_date">
+    </div>
+
+    <!-- ✅ Feedback Input -->
+    <div class="form-group">
+      <label>Feedback (Max 50 characters)</label>
+      <input type="text" [(ngModel)]="job.feedback" name="feedback" 
+             maxlength="50" placeholder="Leave blank if no feedback yet">
+    </div>
+
+    <div class="form-group">
+      <label>{{ job.status === 'offer' || job.status === 'accepted' || job.status === 'rejected' ? 'General Notes' : 'Notes' }}</label>
+      <textarea [(ngModel)]="job.general_notes" name="general_notes" rows="3"
+                placeholder="Leave blank if no notes yet"></textarea>
+    </div>
+
+    <div *ngIf="job.status === 'rejected' || job.status === 'accepted' || job.status === 'offer'" class="feedback-section">
+      <h3>Detailed Feedback</h3>
+      
+      <div class="form-group">
+        <label>Feedback Category *</label>
+        <select [(ngModel)]="job.feedback.category_id" name="category_id" required>
+          <option value="">Select Category</option>
+          <option *ngFor="let cat of feedbackCategories" [value]="cat.id">
+            {{ cat.name }} ({{ cat.type }})
+          </option>
         </select>
-  
-        <label>Interview Notes:</label>
-        <textarea [(ngModel)]="job.feedback.interviewNotes" name="interviewNotes"></textarea>
-  
-        <label>Key Strength:</label>
-        <input type="text" [(ngModel)]="job.feedback.keyStrength" name="keyStrength">
-  
-        <label>Improvement Area:</label>
-        <input type="text" [(ngModel)]="job.feedback.improvementArea" name="improvementArea">
       </div>
-  
-      <button type="submit">{{ isEditMode ? 'Update Job' : 'Create Job' }}</button>
-    </form>
-  </div>
-  
+    
+      <div class="form-group">
+        <label>Interview Notes (Max 500 characters)</label>
+        <textarea [(ngModel)]="job.feedback.notes" name="notes" 
+                  maxlength="500" rows="3"></textarea>
+      </div>
+    
+      <div class="form-group">
+        <label>Key {{ job.status === 'rejected' ? 'Improvements' : 'Strengths' }}</label>
+        <textarea [(ngModel)]="job.improvement_areas" name="improvement_areas" rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="primary-button">
+        {{ isEditMode ? 'Update Application' : 'Create Application' }}
+      </button>
+      <button type="button" (click)="router.navigate(['/jobs'])" class="secondary-button">
+        Cancel
+      </button>
+    </div>
+  </form>
+
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+</div>

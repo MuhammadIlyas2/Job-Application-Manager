@@ -32,7 +32,7 @@ export class JobService {
   // 🔹 Create a New Job
   createJob(jobData: any): Observable<any> {
     const headers = this.getAuthHeaders();
-    return this.http.post<any>(this.baseUrl, jobData, { headers });
+    return this.http.post<any>(`${this.baseUrl}`, jobData, { headers });
   }
 
   // 🔹 Update Job
@@ -45,5 +45,20 @@ export class JobService {
   deleteJob(jobId: number): Observable<any> {
     const headers = this.getAuthHeaders();
     return this.http.delete<any>(`${this.baseUrl}/${jobId}`, { headers });
+  }
+
+  createFeedback(jobId: number, feedback: any): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${this.baseUrl}/${jobId}/feedback`, feedback, { headers });
+  }
+
+  updateFeedback(jobId: number, feedback: any): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.put<any>(`${this.baseUrl}/${jobId}/feedback`, feedback, { headers });
+  }
+
+  getFeedbackCategories(): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${this.baseUrl}/feedback-categories`, { headers });
   }
 }
