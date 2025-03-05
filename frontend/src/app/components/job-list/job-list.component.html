@@ -35,10 +35,10 @@
   <!-- Pagination -->
   <div class="pagination-controls">
     <button (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
-    <span *ngFor="let page of [].constructor(totalPages); let i = index" 
-          (click)="goToPage(i+1)" 
-          [class.active]="i+1 === currentPage">
-      {{ i+1 }}
+    <span *ngFor="let page of getPageNumbers()" 
+          (click)="goToPage(page)" 
+          [class.active]="page === currentPage">
+      {{ page }}
     </span>
     <button (click)="nextPage()" [disabled]="currentPage === totalPages">Next</button>
   </div>

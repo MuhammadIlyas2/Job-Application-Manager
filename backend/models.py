@@ -45,7 +45,7 @@ class JobApplication(db.Model):
 class FeedbackCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    type = db.Column(db.Enum('positive', 'negative'), nullable=False)
+    type = db.Column(db.Enum('positive', 'negative', 'neutral'), nullable=False)
 
     def serialize(self):
         return {
@@ -57,17 +57,22 @@ class FeedbackCategory(db.Model):
 
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    job_id = db.Column(db.Integer, db.ForeignKey('job_application.id'), nullable=False, unique=True)  # 🔹 1 job = 1 feedback
+    job_id = db.Column(db.Integer, db.ForeignKey('job_application.id'), nullable=False, unique=True)
     category_id = db.Column(db.Integer, db.ForeignKey('feedback_category.id'), nullable=False)
-    notes = db.Column(db.Text, nullable=True)
+    notes = db.Column(db.String(50), nullable=True)  # Short summary (max 50 chars)
+    detailed_feedback = db.Column(db.Text, nullable=True)  # Full feedback
+    key_improvements = db.Column(db.Text, nullable=True)  # Key rejection reasons
+    key_strengths = db.Column(db.Text, nullable=True)  # Positive strengths
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # ✅ Convert SQLAlchemy Object to JSON
     def serialize(self):
         return {
             "id": self.id,
             "job_id": self.job_id,
             "category_id": self.category_id,
             "notes": self.notes,
+            "detailed_feedback": self.detailed_feedback,
+            "key_improvements": self.key_improvements,
+            "key_strengths": self.key_strengths,
             "created_at": self.created_at.isoformat()
         }

@@ -1,4 +1,3 @@
-<!-- job-form.component.html -->
 <div class="job-form-container">
   <h2>{{ isEditMode ? 'Edit Job Application' : 'New Job Application' }}</h2>
 
@@ -39,26 +38,33 @@
       <input type="date" [(ngModel)]="job.applied_date" name="applied_date">
     </div>
 
-    <!-- ✅ Feedback Input -->
+    <!-- General Notes (always available) -->
     <div class="form-group">
-      <label>Feedback (Max 50 characters)</label>
-      <input type="text" [(ngModel)]="job.feedback" name="feedback" 
-             maxlength="50" placeholder="Leave blank if no feedback yet">
-    </div>
-
-    <div class="form-group">
-      <label>{{ job.status === 'offer' || job.status === 'accepted' || job.status === 'rejected' ? 'General Notes' : 'Notes' }}</label>
+      <label>
+        {{ job.status === 'offer' || job.status === 'accepted' || job.status === 'rejected' ? 'General Notes' : 'Notes' }}
+      </label>
       <textarea [(ngModel)]="job.general_notes" name="general_notes" rows="3"
                 placeholder="Leave blank if no notes yet"></textarea>
     </div>
 
+    <!-- Basic Feedback Input (short summary) -->
+    <div class="form-group">
+      <label>Feedback Summary (Max 50 characters)</label>
+      <input type="text" 
+             [(ngModel)]="job.feedbackSummary" 
+             name="feedbackSummary"
+             maxlength="50"
+             placeholder="Brief summary">
+    </div>
+
+    <!-- Detailed Feedback Section -->
     <div *ngIf="job.status === 'rejected' || job.status === 'accepted' || job.status === 'offer'" class="feedback-section">
       <h3>Detailed Feedback</h3>
       
-      <div class="form-group">
-        <label>Feedback Category *</label>
-        <select [(ngModel)]="job.feedback.category_id" name="category_id" required>
-          <option value="">Select Category</option>
+      <div class="form-group" *ngIf="feedbackCategories.length > 0">
+        <label>Feedback Category</label>
+        <select [(ngModel)]="job.feedback.category_id" name="feedback.category_id">
+          <option [ngValue]="null">Select Category</option>
           <option *ngFor="let cat of feedbackCategories" [value]="cat.id">
             {{ cat.name }} ({{ cat.type }})
           </option>
@@ -66,15 +72,25 @@
       </div>
     
       <div class="form-group">
-        <label>Interview Notes (Max 500 characters)</label>
-        <textarea [(ngModel)]="job.feedback.notes" name="notes" 
-                  maxlength="500" rows="3"></textarea>
+        <label>Detailed Feedback Notes</label>
+        <textarea [(ngModel)]="job.feedback.detailed_feedback" 
+                  name="detailed_feedback"
+                  rows="3"
+                  placeholder="Detailed notes"></textarea>
       </div>
     
-      <div class="form-group">
-        <label>Key {{ job.status === 'rejected' ? 'Improvements' : 'Strengths' }}</label>
-        <textarea [(ngModel)]="job.improvement_areas" name="improvement_areas" rows="3"></textarea>
+      <!-- Key Improvements (Only for Rejected) -->
+      <div class="form-group" *ngIf="job.status === 'rejected'">
+        <label>Key Improvements</label>
+        <textarea [(ngModel)]="job.feedback.key_improvements" name="key_improvements" rows="3"></textarea>
       </div>
+
+      <!-- Key Strengths (Only for Accepted/Offer) -->
+        <div class="form-group" *ngIf="job.status === 'accepted' || job.status === 'offer'">
+        <label>Key Strengths</label>
+        <textarea [(ngModel)]="job.feedback.key_strengths" name="key_strengths" rows="3"></textarea>
+        </div>
+
     </div>
 
     <div class="form-actions">

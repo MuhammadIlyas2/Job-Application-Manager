@@ -43,14 +43,15 @@ export class JobListComponent implements OnInit, AfterViewInit {
 
   // ✅ Calculate how many jobs fit in the available screen space
   calculateJobsPerPage(): void {
-    if (this.tableContainer) {
-      const containerHeight = window.innerHeight - this.tableContainer.nativeElement.offsetTop - 150; // Adjust for header and padding
-      const rowHeight = 60; // Approximate row height
-      this.jobsPerPage = Math.max(1, Math.floor(containerHeight / rowHeight));
+    if (this.tableContainer?.nativeElement) {
+      const container = this.tableContainer.nativeElement;
+      const rowHeight = 60; // Approx height per row
+      const availableHeight = window.innerHeight - container.getBoundingClientRect().top - 50;
+      this.jobsPerPage = Math.max(1, Math.floor(availableHeight / rowHeight));
     } else {
-      this.jobsPerPage = window.innerWidth < 768 ? 1 : 3; // Fallback values
+      this.jobsPerPage = window.innerWidth < 768 ? 3 : 5; // Better fallback
     }
-    console.log(`🖥️ Adjusted Jobs Per Page: ${this.jobsPerPage}`);
+    console.log(`🔄 Jobs per page: ${this.jobsPerPage}`);
   }
 
   // ✅ Fetch Jobs with Updated `limit`
@@ -59,8 +60,9 @@ export class JobListComponent implements OnInit, AfterViewInit {
     this.jobService.getJobs(this.currentPage, this.jobsPerPage).subscribe(
       res => {
         console.log("✅ API Response:", res);
-        this.jobs = Array.isArray(res) ? res : res.jobs;
-        this.totalPages = res.totalPages || 1;
+        this.jobs = res.jobs; // Directly access jobs array
+        this.totalPages = res.totalPages; // Match backend response key
+        this.currentPage = res.currentPage; // Optional: Sync page number
       },
       err => {
         console.error("❌ Error Fetching Jobs:", err);
@@ -134,5 +136,9 @@ export class JobListComponent implements OnInit, AfterViewInit {
     const data = new Blob([excelBuffer], { type: this.EXCEL_TYPE });
   
     saveAs(data, `Job_Applications_${new Date().toISOString().split('T')[0]}.xlsx`);
+  }
+
+  getPageNumbers(): number[] {
+    return Array.from({length: this.totalPages}, (_, i) => i + 1);
   }
 }

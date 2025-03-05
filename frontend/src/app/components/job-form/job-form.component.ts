@@ -17,27 +17,23 @@ export class JobFormComponent {
   job: any = {
     job_title: '',
     company: '',
-    role_category: '',
     status: 'applied',
     general_notes: '',
-    applied_date: new Date().toISOString().split('T')[0],
+    feedbackSummary: '',  // Short summary (50 chars)
     feedback: {
       notes: '',
-      category_id: null
+      category_id: null,
+      detailed_feedback: '',
+      key_improvements: '',
+      key_strengths: ''
     }
   };
 
-  feedbackCategories: any[] = []; // Load from API
-
+  feedbackCategories: any[] = [];
   isEditMode = false;
   errorMessage = '';
-  roles: any[] = []; // Initialize as empty array
+  roles: any[] = [];
   statuses = ['applied', 'interview', 'offer', 'accepted', 'rejected'];
-  feedbackTypes: Record<string, string[]> = {
-    rejected: ['Technical Skills', 'Cultural Fit', 'Experience Gap'],
-    accepted: ['Technical Strength', 'Cultural Alignment'],
-    offer: ['Technical Strength', 'Cultural Alignment'] // ✅ Same as accepted
-  };
 
   constructor(
     private jobService: JobService,
@@ -62,8 +58,14 @@ export class JobFormComponent {
 
   private loadFeedbackCategories(): void {
     this.jobService.getFeedbackCategories().subscribe({
-      next: (res) => this.feedbackCategories = res,
-      error: (err) => console.error('Failed to load categories', err)
+      next: (res) => {
+        this.feedbackCategories = res;
+        console.log('Loaded feedback categories:', res);
+      },
+      error: (err) => {
+        console.error('Failed to load categories', err);
+        this.errorMessage = 'Failed to load feedback categories';
+      }
     });
   }
 
@@ -72,12 +74,71 @@ export class JobFormComponent {
       next: (res) => {
         this.job = res;
         this.job.applied_date = new Date(res.applied_date).toISOString().split('T')[0];
-
-        // ✅ Ensure feedback & notes are included if available
-        this.job.feedback = res.feedback ? res.feedback.substring(0, 50) : ''; 
-        this.job.general_notes = res.general_notes || ''; 
+        
+        // Split notes into summary and details
+        if (res.feedback?.notes) {
+          const [summary, ...details] = res.feedback.notes.split('\n\n');
+          this.job.feedbackSummary = summary;
+          this.job.feedback.notes = details;
+        } else {
+          this.job.feedbackSummary = '';
+          this.job.feedback.notes = '';
+        }
+        
+        this.job.general_notes = res.general_notes || '';
       },
       error: (err) => this.handleError(err)
+    });
+  }
+
+  submitForm(): void {
+    // Combine feedback fields with double newline separator
+    const combinedNotes = [
+      this.job.feedbackSummary,
+      this.job.feedback.notes
+    ].filter(text => text.trim()).join('\n\n');
+  
+    const jobData = { ...this.job };
+
+    
+    // Remove feedback from job data
+    const feedbackData = {
+      notes: this.job.feedbackSummary.substring(0, 50),
+      category_id: this.job.feedback.category_id,
+      detailed_feedback: this.job.feedback.detailed_feedback,
+      key_improvements: this.job.status === 'rejected' ? this.job.feedback.key_improvements : '',
+      key_strengths: (this.job.status === 'accepted' || this.job.status === 'offer') ? this.job.feedback.key_strengths : ''
+    };
+    delete jobData.feedback;
+
+    const operation = this.isEditMode 
+      ? this.jobService.updateJob(this.job.id, jobData)
+      : this.jobService.createJob(jobData);
+
+      operation.subscribe({
+        next: (res) => {
+          const jobId = this.isEditMode ? this.job.id : res.job.id;
+          if (feedbackData.notes.trim() || feedbackData.category_id) {
+            this.handleFeedback(jobId, feedbackData);
+          } else {
+            this.router.navigate(['/jobs']);
+          }
+        },
+        error: (err) => this.handleError(err)
+      });
+    }
+
+  private handleFeedback(jobId: number, feedbackData: any): void {
+    const operation = this.job.feedback?.id
+      ? this.jobService.updateFeedback(jobId, feedbackData)
+      : this.jobService.createFeedback(jobId, feedbackData);
+
+    operation.subscribe({
+      next: () => this.router.navigate(['/jobs']),
+      error: (err) => {
+        console.error('Feedback save failed', err);
+        this.errorMessage += '\nFailed to save feedback details';
+      }
     });
   }
 
@@ -88,51 +149,8 @@ export class JobFormComponent {
     });
   }
 
-  submitForm(): void {
-    const jobData = {
-      ...this.job,
-      feedback: this.job.feedback.notes ? this.job.feedback : null
-    };
-
-    const operation = this.isEditMode 
-      ? this.jobService.updateJob(this.job.id, jobData)
-      : this.jobService.createJob(jobData);
-
-    operation.subscribe({
-      next: (res) => this.handleFeedback(res.id),
-      error: (err) => this.handleError(err)
-    });
-  }
-
-  private handleFeedback(jobId: number): void {
-    if (!this.job.feedback.notes) {
-      this.router.navigate(['/jobs']);
-      return;
-    }
-
-    const feedbackData = {
-      category_id: this.job.feedback.category_id,
-      notes: this.job.feedback.notes.substring(0, 500)
-    };
-
-    const feedbackOperation = this.isEditMode
-      ? this.jobService.updateFeedback(jobId, feedbackData)
-      : this.jobService.createFeedback(jobId, feedbackData);
-
-    feedbackOperation.subscribe({
-      next: () => this.router.navigate(['/jobs']),
-      error: (err) => {
-        console.error('Feedback save failed', err);
-        this.errorMessage += '\nFailed to save feedback details';
-      }
-    });
-  }
-  
-
   private handleError(err: any): void {
     this.errorMessage = err.error?.message || 'Operation failed. Please try again.';
     console.error(err);
   }
-
-
 }

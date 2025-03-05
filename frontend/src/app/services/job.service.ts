@@ -44,17 +44,18 @@ export class JobService {
   // 🔹 Delete Job
   deleteJob(jobId: number): Observable<any> {
     const headers = this.getAuthHeaders();
-    return this.http.delete<any>(`${this.baseUrl}/${jobId}`, { headers });
+    // Add /jobs to match the backend route structure
+    return this.http.delete<any>(`${this.baseUrl}/jobs/${jobId}`, { headers });
   }
 
   createFeedback(jobId: number, feedback: any): Observable<any> {
     const headers = this.getAuthHeaders();
-    return this.http.post<any>(`${this.baseUrl}/${jobId}/feedback`, feedback, { headers });
+    return this.http.post<any>(`${this.baseUrl}/jobs/${jobId}/feedback`, feedback, { headers });
   }
-
+  
   updateFeedback(jobId: number, feedback: any): Observable<any> {
     const headers = this.getAuthHeaders();
-    return this.http.put<any>(`${this.baseUrl}/${jobId}/feedback`, feedback, { headers });
+    return this.http.put<any>(`${this.baseUrl}/jobs/${jobId}/feedback`, feedback, { headers });
   }
 
   getFeedbackCategories(): Observable<any> {
