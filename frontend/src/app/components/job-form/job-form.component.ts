@@ -30,6 +30,7 @@ export class JobFormComponent {
   };
 
   feedbackCategories: any[] = [];
+  filteredCategories: any[] = [];
   isEditMode = false;
   errorMessage = '';
   roles: any[] = [];
@@ -54,19 +55,74 @@ export class JobFormComponent {
     } else {
       this.setCurrentUser();
     }
+
+    if (!this.job.status) {
+      this.job.status = 'applied';
+    }
   }
 
   private loadFeedbackCategories(): void {
     this.jobService.getFeedbackCategories().subscribe({
       next: (res) => {
         this.feedbackCategories = res;
-        console.log('Loaded feedback categories:', res);
+        //console.log('✅ Loaded Categories:', this.feedbackCategories); // Debugging log
+        this.filterCategories(); // Apply filtering after loading categories
       },
       error: (err) => {
-        console.error('Failed to load categories', err);
+        console.error('❌ Failed to load categories:', err);
         this.errorMessage = 'Failed to load feedback categories';
       }
     });
+  }
+  
+  // ✅ Filter categories based on status
+  filterCategories(): void {
+    //console.log('🔄 Filtering Categories...');
+    //console.log('🟡 Current Status:', this.job.status);
+  
+    if (!this.feedbackCategories || this.feedbackCategories.length === 0) {
+      console.warn('⚠️ Categories Not Loaded Yet');
+      return;
+    }
+  
+    let allowedTypes: string[] = [];
+  
+    if (this.job.status === 'offer' || this.job.status === 'accepted') {
+      allowedTypes = ['positive', 'neutral'];
+    } else if (this.job.status === 'rejected') {
+      allowedTypes = ['negative', 'neutral'];
+    } else {
+      allowedTypes = ['positive', 'negative', 'neutral']; // Show all for applied/interview
+    }
+  
+    //console.log('✅ Allowed Types:', allowedTypes);
+  
+    this.filteredCategories = this.feedbackCategories.filter(cat => {
+      const categoryType = typeof cat.type === 'string' ? cat.type.trim().toLowerCase() : ''; 
+      const isAllowed = allowedTypes.includes(categoryType);
+      
+      //console.log(`Checking Category: ${cat.name} (Type: ${categoryType}) -> ${isAllowed ? '✅ Kept' : '❌ Filtered Out'}`);
+      
+      return isAllowed;
+    });
+  
+    //console.log('🔽 Final Filtered Categories:', this.filteredCategories);
+  }
+  
+  
+  // ✅ Auto-update categories when status changes
+  onStatusChange(): void {
+    //console.log('🔄 Status Changed BEFORE:', this.job.status);
+  
+    if (!this.job.status) {
+      console.warn('⚠️ Status is Undefined! Setting default.');
+      this.job.status = 'applied';
+    }
+  
+    this.filterCategories();
+  
+    //console.log('✅ Status Changed AFTER:', this.job.status);
+    //console.log('🔍 Updated Filtered Categories:', this.filteredCategories);
   }
 
   private loadJob(jobId: string): void {
@@ -93,6 +149,13 @@ export class JobFormComponent {
 
   submitForm(): void {
     // Combine feedback fields with double newline separator
+
+   // console.log('🚀 Submitting Form with Status:', this.job.status);
+
+  if (!this.job.status) {
+    console.warn('⚠️ Status is still undefined before submitting!');
+    return;
+  }
     const combinedNotes = [
       this.job.feedbackSummary,
       this.job.feedback.notes
@@ -126,6 +189,9 @@ export class JobFormComponent {
         },
         error: (err) => this.handleError(err)
       });
+
+      //console.log('📤 Final Job Data:', jobData);
+      //console.log('📤 Final Feedback Data:', feedbackData);    
     }
 
   private handleFeedback(jobId: number, feedbackData: any): void {

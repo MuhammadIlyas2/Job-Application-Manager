@@ -277,6 +277,9 @@ def delete_job(job_id):
 def get_feedback_categories():
     try:
         categories = FeedbackCategory.query.all()
-        return jsonify([c.serialize() for c in categories]), 200
+        result = [c.serialize() for c in categories]
+        print("✅ Feedback Categories from DB:", result)  # Debugging log
+        return jsonify(result), 200
     except Exception as e:
+        print(f"❌ ERROR in `get_feedback_categories`: {str(e)}")
         return jsonify({"error": str(e)}), 500

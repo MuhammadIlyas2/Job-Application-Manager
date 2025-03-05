@@ -26,7 +26,7 @@
 
     <div class="form-group">
       <label>Status *</label>
-      <select [(ngModel)]="job.status" name="status" required>
+      <select [(ngModel)]="job.status" name="status" required (ngModelChange)="onStatusChange()">
         <option *ngFor="let status of statuses" [value]="status">
           {{ status | titlecase }}
         </option>
@@ -61,12 +61,12 @@
     <div *ngIf="job.status === 'rejected' || job.status === 'accepted' || job.status === 'offer'" class="feedback-section">
       <h3>Detailed Feedback</h3>
       
-      <div class="form-group" *ngIf="feedbackCategories.length > 0">
+      <div class="form-group" *ngIf="filteredCategories.length > 0">
         <label>Feedback Category</label>
-        <select [(ngModel)]="job.feedback.category_id" name="feedback.category_id">
+        <select [(ngModel)]="job.feedback.category_id" name="feedback.category_id" (change)="onStatusChange()">
           <option [ngValue]="null">Select Category</option>
-          <option *ngFor="let cat of feedbackCategories" [value]="cat.id">
-            {{ cat.name }} ({{ cat.type }})
+          <option *ngFor="let cat of filteredCategories" [value]="cat.id">
+            {{ cat.name }} <!--({{ cat.type }})-->
           </option>
         </select>
       </div>
