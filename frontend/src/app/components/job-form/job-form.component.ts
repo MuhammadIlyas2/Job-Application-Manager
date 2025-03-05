@@ -128,25 +128,36 @@ export class JobFormComponent {
   private loadJob(jobId: string): void {
     this.jobService.getJobById(+jobId).subscribe({
       next: (res) => {
-        this.job = res;
-        this.job.applied_date = new Date(res.applied_date).toISOString().split('T')[0];
-        
-        // Split notes into summary and details
-        if (res.feedback?.notes) {
-          const [summary, ...details] = res.feedback.notes.split('\n\n');
-          this.job.feedbackSummary = summary;
-          this.job.feedback.notes = details;
+        console.log("✅ Raw API Response:", res);  // Debugging log
+  
+        // Ensure proper job structure
+        this.job = {
+          ...res,
+          role_category: res.role_category || '',  // Handle null role_category
+          applied_date: res.applied_date ? new Date(res.applied_date).toISOString().split('T')[0] : '',
+          feedback: {
+            notes: res.feedback?.notes || '',
+            detailed_feedback: res.feedback?.detailed_feedback || '',
+            key_improvements: res.feedback?.key_improvements || '',
+            key_strengths: res.feedback?.key_strengths || '',
+            category_id: res.feedback?.category_id || null
+          }
+        };
+  
+        // ✅ FIX: Properly assign feedbackSummary
+        if (typeof this.job.feedback.notes === 'string') {
+          this.job.feedbackSummary = this.job.feedback.notes;
         } else {
           this.job.feedbackSummary = '';
-          this.job.feedback.notes = '';
         }
-        
-        this.job.general_notes = res.general_notes || '';
+  
+        console.log("🛠 Processed Job Data:", this.job);  // Debugging log
+        this.filterCategories();
       },
       error: (err) => this.handleError(err)
     });
   }
-
+  
   submitForm(): void {
     // Combine feedback fields with double newline separator
 

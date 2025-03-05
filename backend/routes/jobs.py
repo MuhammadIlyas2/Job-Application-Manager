@@ -118,14 +118,14 @@ def create_or_list_jobs():
 
     return jsonify({'message': 'Invalid request method'}), 405
 
-@jobs_bp.route('/jobs/<int:job_id>', methods=['GET'])
+@jobs_bp.route('/<int:job_id>', methods=['GET'])
 def get_job(job_id):
-    """Retrieve a single job application with feedback."""
+    """Retrieve a single job application with full feedback details."""
     try:
         query = text("""
         SELECT 
-            ja.id, ja.job_title, ja.company, ja.status, ja.general_notes, ja.applied_date,
-            COALESCE(f.notes, 'No feedback yet') AS feedback
+            ja.id, ja.job_title, ja.company, ja.status, ja.general_notes, ja.applied_date, ja.role_category,
+            f.notes, f.detailed_feedback, f.key_improvements, f.key_strengths, f.category_id
         FROM job_application ja
         LEFT JOIN feedback f ON ja.id = f.job_id
         WHERE ja.id = :job_id;
@@ -133,23 +133,27 @@ def get_job(job_id):
 
         result = db.session.execute(query, {"job_id": job_id}).fetchone()
 
-        print(f"🔍 Query Result for Job ID {job_id}: {result}")  # Debugging
-
         if not result:
             return jsonify({"message": "Job not found"}), 404
 
         job_data = {
-            "id": result[0],  
-            "job_title": result[1],  
-            "company": result[2],  
-            "status": result[3],  
-            "general_notes": result[4],  
-            "applied_date": result[5].strftime("%Y-%m-%d") if result[5] else None,  
-            "feedback": result[6]  
+            "id": result[0],
+            "job_title": result[1],
+            "company": result[2],
+            "status": result[3],
+            "general_notes": result[4],
+            "applied_date": result[5].strftime("%Y-%m-%d") if result[5] else None,
+            "role_category": result[6],
+            "feedback": {
+                "notes": result[7],
+                "detailed_feedback": result[8],
+                "key_improvements": result[9],
+                "key_strengths": result[10],
+                "category_id": result[11]
+            }
         }
 
         return jsonify(job_data), 200
-
     except Exception as e:
         print(f"❌ ERROR in `get_job`: {str(e)}")
         return jsonify({"error": str(e)}), 500
