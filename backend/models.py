@@ -26,8 +26,9 @@ class JobApplication(db.Model):
     company = db.Column(db.String(100), nullable=False)
     role_category = db.Column(db.String(100))
     status = db.Column(db.String(50), default='applied')
-    applied_date = db.Column(db.DateTime, default=datetime.utcnow)
+    applied_date = db.Column(db.Date)
     general_notes = db.Column(db.Text, default=None)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def serialize(self):
         return {
@@ -39,6 +40,7 @@ class JobApplication(db.Model):
             'status': self.status,
             'applied_date': self.applied_date.isoformat(),
             'general_notes': self.general_notes,
+            'created_at': self.created_at.isoformat(),
         }
 
 

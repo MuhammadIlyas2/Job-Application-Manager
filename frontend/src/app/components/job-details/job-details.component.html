@@ -1,12 +1,35 @@
 <div class="job-details-container" *ngIf="job">
-    <h2>Job Application Details</h2>
-    <p><strong>Job Title:</strong> {{ job.job_title }}</p>
-    <p><strong>Company:</strong> {{ job.company }}</p>
-    <p><strong>Role Category:</strong> {{ job.role_category }}</p>
-    <p><strong>Status:</strong> {{ job.status }}</p>
-    <p><strong>Feedback:</strong> {{ job.feedback }}</p>
-    <p><strong>Applied Date:</strong> {{ job.applied_date | date }}</p>
-    <button (click)="goBack()">Back to List</button>
-  </div>
-  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+  <h2>Job Application Details</h2>
   
+  <p><strong>Job Title:</strong> {{ job.job_title }}</p>
+  <p><strong>Company:</strong> {{ job.company }}</p>
+  <p><strong>Role Category:</strong> {{ job.role_category || 'N/A' }}</p>
+  <p><strong>Status:</strong> {{ job.status }}</p>
+  <p><strong>Applied Date:</strong> {{ job.applied_date }}</p>
+  <p><strong>Created At:</strong> {{ job.created_at }}</p>
+  <p><strong>General Notes:</strong> {{ job.general_notes || 'No notes available' }}</p>
+
+  <!-- Feedback Section -->
+  <div *ngIf="job.feedback">
+    <h3>Feedback</h3>
+    <p><strong>Category:</strong> {{ job.feedback.category_name || 'No category' }} 
+      ({{ job.feedback.category_type || 'N/A' }})</p>
+    <p><strong>Summary:</strong> {{ job.feedback.notes || 'No feedback summary' }}</p>
+    
+    <div *ngIf="job.feedback.detailed_feedback">
+      <p><strong>Detailed Feedback:</strong> {{ job.feedback.detailed_feedback }}</p>
+    </div>
+
+    <div *ngIf="job.status === 'rejected' && job.feedback.key_improvements">
+      <p><strong>Key Improvements:</strong> {{ job.feedback.key_improvements }}</p>
+    </div>
+
+    <div *ngIf="(job.status === 'accepted' || job.status === 'offer') && job.feedback.key_strengths">
+      <p><strong>Key Strengths:</strong> {{ job.feedback.key_strengths }}</p>
+    </div>
+  </div>
+
+  <button (click)="goBack()">Back to List</button>
+</div>
+
+<div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>

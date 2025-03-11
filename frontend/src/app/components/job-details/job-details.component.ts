@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { JobService } from '../../services/job.service';
-import { AuthService } from '../../services/auth.service';  // 🔹 Import AuthService
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -9,32 +8,20 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './job-details.component.html',
-  styleUrl: './job-details.component.css'
+  styleUrls: ['./job-details.component.css']
 })
 export class JobDetailsComponent {
-  job: any;
+  job: any = null;
   errorMessage = '';
-  userId: number | null = null;  // 🔹 Store logged-in user's ID
 
   constructor(
     private route: ActivatedRoute, 
     private router: Router,  
-    private authService: AuthService,  // 🔹 Inject AuthService
     private jobService: JobService
   ) { }
 
   ngOnInit(): void {
-    // 🔹 Get logged-in user ID
-    this.authService.getCurrentUser().subscribe(
-      user => {
-        this.userId = user.id;  // ✅ Store user ID
-        this.loadJobDetails();
-      },
-      err => {
-        console.error(err);
-        this.errorMessage = 'Error fetching user details';
-      }
-    );
+    this.loadJobDetails();
   }
 
   loadJobDetails(): void {
@@ -42,6 +29,7 @@ export class JobDetailsComponent {
     if (jobId) {
       this.jobService.getJobById(+jobId).subscribe(
         res => {
+          console.log("✅ Loaded Job Data:", res);  // Debugging log
           this.job = res;
         },
         err => {
@@ -53,10 +41,6 @@ export class JobDetailsComponent {
   }
 
   goBack(): void {
-    if (this.userId) {
-      this.router.navigate([`/jobs`], { queryParams: { user_id: this.userId } });  // ✅ Include user_id in query params
-    } else {
-      this.router.navigate(['/login']);  // 🔹 Fallback if user_id is missing
-    }
+    this.router.navigate(['/jobs']);
   }
 }
