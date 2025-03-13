@@ -11,15 +11,14 @@ import { saveAs } from 'file-saver';
   standalone: true,
   imports: [CommonModule, StatusPillComponent, RouterLink],
   templateUrl: './job-list.component.html',
-  styleUrl: './job-list.component.css'
+  styleUrls: ['./job-list.component.css']
 })
 export class JobListComponent implements OnInit, AfterViewInit {
   jobs: any[] = [];
   errorMessage = '';
   currentPage = 1;
   totalPages = 1;
-  jobsPerPage: number = 2; // Default value, updated dynamically
-  EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+  jobsPerPage: number = 5;
 
   @ViewChild('tableContainer') tableContainer!: ElementRef;
 
@@ -31,47 +30,46 @@ export class JobListComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.calculateJobsPerPage();
-    this.loadJobs();
+    // Slight delay to ensure the container is rendered
+    setTimeout(() => {
+      this.calculateJobsPerPage();
+      this.loadJobs();
+    }, 100);
   }
 
   @HostListener('window:resize', ['$event'])
   onResize(): void {
     this.calculateJobsPerPage();
-    this.loadJobs();
+    setTimeout(() => this.loadJobs(), 200);
   }
 
-  // ✅ Calculate how many jobs fit in the available screen space
   calculateJobsPerPage(): void {
     if (this.tableContainer?.nativeElement) {
       const container = this.tableContainer.nativeElement;
-      const rowHeight = 60; // Approx height per row
-      const availableHeight = window.innerHeight - container.getBoundingClientRect().top - 50;
-      this.jobsPerPage = Math.max(1, Math.floor(availableHeight / rowHeight));
+      const rowHeight = 70;
+      // Adjust for any header/footer space
+      const availableHeight =
+        window.innerHeight - container.getBoundingClientRect().top - 100;
+      this.jobsPerPage = Math.max(2, Math.floor(availableHeight / rowHeight));
     } else {
-      this.jobsPerPage = window.innerWidth < 768 ? 3 : 5; // Better fallback
+      // Fallback if container is not ready
+      this.jobsPerPage = window.innerWidth < 768 ? 3 : 6;
     }
-    console.log(`🔄 Jobs per page: ${this.jobsPerPage}`);
   }
 
-  // ✅ Fetch Jobs with Updated `limit`
   loadJobs(): void {
-    console.log(`🔹 Fetching Jobs: Page ${this.currentPage}, Limit ${this.jobsPerPage}`);
     this.jobService.getJobs(this.currentPage, this.jobsPerPage).subscribe(
-      res => {
-        console.log("✅ API Response:", res);
-        this.jobs = res.jobs; // Directly access jobs array
-        this.totalPages = res.totalPages; // Match backend response key
-        this.currentPage = res.currentPage; // Optional: Sync page number
+      (res: any) => {
+        this.jobs = res.jobs;
+        this.totalPages = res.totalPages;
+        this.currentPage = res.currentPage;
       },
       err => {
-        console.error("❌ Error Fetching Jobs:", err);
         this.errorMessage = 'Error loading jobs';
       }
     );
   }
 
-  // ✅ Pagination Functions
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
@@ -93,15 +91,13 @@ export class JobListComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // ✅ Navigate to Job Details (Prevent Click Propagation)
   goToJobDetails(jobId: number, event: Event): void {
-    event.stopPropagation(); // Prevent row click from triggering
+    event.stopPropagation();
     this.router.navigate([`/jobs/${jobId}`]);
   }
 
-  // ✅ Delete Job (Prevent Click Propagation)
   deleteJob(jobId: number, event: Event): void {
-    event.stopPropagation(); // Prevent row click
+    event.stopPropagation();
     if (confirm('Are you sure you want to delete this job?')) {
       this.jobService.deleteJob(jobId).subscribe(() => this.loadJobs());
     }
@@ -112,33 +108,39 @@ export class JobListComponent implements OnInit, AfterViewInit {
     this.router.navigate([`/job-form/${jobId}`]);
   }
 
-  // ✅ Export Jobs to Excel
   exportToExcel(): void {
     if (this.jobs.length === 0) {
       alert("No jobs available to export!");
       return;
     }
-  
+
     const jobData = this.jobs.map(job => ({
       "Job Title": job.job_title,
       "Company": job.company,
       "Role Category": job.role_category || "N/A",
       "Status": job.status,
       "Feedback": job.feedback || "No feedback",
-      "Applied Date": job.applied_date ? new Date(job.applied_date).toLocaleDateString() : "N/A"
+      "Applied Date": job.applied_date
+        ? new Date(job.applied_date).toLocaleDateString()
+        : "N/A"
     }));
-  
+
     const worksheet = XLSX.utils.json_to_sheet(jobData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Job Applications");
-  
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const data = new Blob([excelBuffer], { type: this.EXCEL_TYPE });
-  
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: 'xlsx',
+      type: 'array'
+    });
+    const data = new Blob([excelBuffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+    });
+
     saveAs(data, `Job_Applications_${new Date().toISOString().split('T')[0]}.xlsx`);
   }
 
   getPageNumbers(): number[] {
-    return Array.from({length: this.totalPages}, (_, i) => i + 1);
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 }
