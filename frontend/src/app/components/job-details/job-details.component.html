@@ -1,35 +1,78 @@
-<div class="job-details-container" *ngIf="job">
-  <h2>Job Application Details</h2>
-  
-  <p><strong>Job Title:</strong> {{ job.job_title }}</p>
-  <p><strong>Company:</strong> {{ job.company }}</p>
-  <p><strong>Role Category:</strong> {{ job.role_category || 'N/A' }}</p>
-  <p><strong>Status:</strong> {{ job.status }}</p>
-  <p><strong>Applied Date:</strong> {{ job.applied_date }}</p>
-  <p><strong>Created At:</strong> {{ job.created_at }}</p>
-  <p><strong>General Notes:</strong> {{ job.general_notes || 'No notes available' }}</p>
+<div class="job-details-wrapper" *ngIf="job; else errorTemplate">
+  <div class="card">
+    <header class="card-header">
+      <h2>Job Application Details</h2>
+      <p class="subtitle">{{ job.job_title }} at {{ job.company }}</p>
+    </header>
 
-  <!-- Feedback Section -->
-  <div *ngIf="job.feedback">
-    <h3>Feedback</h3>
-    <p><strong>Category:</strong> {{ job.feedback.category_name || 'No category' }} 
-      ({{ job.feedback.category_type || 'N/A' }})</p>
-    <p><strong>Summary:</strong> {{ job.feedback.notes || 'No feedback summary' }}</p>
-    
-    <div *ngIf="job.feedback.detailed_feedback">
-      <p><strong>Detailed Feedback:</strong> {{ job.feedback.detailed_feedback }}</p>
+    <div class="card-body">
+      <div class="details-grid">
+        <div class="detail-item">
+          <span class="label">Job Title:</span>
+          <span class="value">{{ job.job_title }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Company:</span>
+          <span class="value">{{ job.company }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Role Category:</span>
+          <span class="value">{{ job.role_category || 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Status:</span>
+          <span class="value">{{ job.status }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Applied Date:</span>
+          <span class="value">{{ job.applied_date }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Created At:</span>
+          <span class="value">{{ job.created_at }}</span>
+        </div>
+        <div class="detail-item full">
+          <span class="label">General Notes:</span>
+          <span class="value">{{ job.general_notes || 'No notes available' }}</span>
+        </div>
+      </div>
+
+      <!-- Feedback Section -->
+      <div class="feedback-section" *ngIf="job.feedback">
+        <h3>Feedback</h3>
+        <div class="feedback-grid">
+          <div class="feedback-item">
+            <span class="label">Category:</span>
+            <span class="value">
+              {{ job.feedback.category_name || 'No category' }} ({{ job.feedback.category_type || 'N/A' }})
+            </span>
+          </div>
+          <div class="feedback-item">
+            <span class="label">Summary:</span>
+            <span class="value">{{ job.feedback.notes || 'No feedback summary' }}</span>
+          </div>
+          <div class="feedback-item full" *ngIf="job.feedback.detailed_feedback">
+            <span class="label">Detailed Feedback:</span>
+            <span class="value">{{ job.feedback.detailed_feedback }}</span>
+          </div>
+          <div class="feedback-item full" *ngIf="job.status === 'rejected' && job.feedback.key_improvements">
+            <span class="label">Key Improvements:</span>
+            <span class="value">{{ job.feedback.key_improvements }}</span>
+          </div>
+          <div class="feedback-item full" *ngIf="(job.status === 'accepted' || job.status === 'offer') && job.feedback.key_strengths">
+            <span class="label">Key Strengths:</span>
+            <span class="value">{{ job.feedback.key_strengths }}</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div *ngIf="job.status === 'rejected' && job.feedback.key_improvements">
-      <p><strong>Key Improvements:</strong> {{ job.feedback.key_improvements }}</p>
-    </div>
-
-    <div *ngIf="(job.status === 'accepted' || job.status === 'offer') && job.feedback.key_strengths">
-      <p><strong>Key Strengths:</strong> {{ job.feedback.key_strengths }}</p>
-    </div>
+    <footer class="card-footer">
+      <button class="btn btn-primary" (click)="goBack()">Back to List</button>
+    </footer>
   </div>
-
-  <button (click)="goBack()">Back to List</button>
 </div>
 
-<div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+<ng-template #errorTemplate>
+  <div class="error">{{ errorMessage }}</div>
+</ng-template>

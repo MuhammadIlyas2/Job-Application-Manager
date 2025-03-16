@@ -1,49 +1,175 @@
+/* ========== Body Background (if not set globally) ========== */
+body {
+  background: #F3F4F6; /* matches Job List page */
+  color: #1F2937; /* unify text color with Job List */
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* Ensure html/body fill the entire browser height */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* .job-form-container now fills the screen vertically */
 .job-form-container {
-    display: flex;
+  /* Take full viewport height */
+  min-height: 100vh; 
+  width: 100%;
+  margin: 0; 
+  /* If you want the background color behind the form: */
+  background: #F3F4F6; 
+  /* Spacing inside the container */
+  padding: 20px; 
+  box-sizing: border-box;
+
+  /* Make it a flex container so we can stretch the form */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========== Heading & Subtitle ========== */
+.form-heading {
+  text-align: center;
+  margin-bottom: 5px;
+  font-size: 28px;
+  color: #6C63FF; /* unify with Job List's purple */
+}
+.form-subtitle {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #555;
+  font-size: 14px;
+}
+
+/* ========== Form Card ========== */
+.job-form-container form {
+  flex: 1; /* this makes the form take all remaining vertical space */
+  display: flex;
+  flex-direction: column;
+  background: #FAFAFA;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 20px;
+  box-sizing: border-box;
+  min-height: 0;
+}
+
+/* ========== Two-Column Layout for .form-row ========== */
+.form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* Stack columns on small screens */
+@media (max-width: 600px) {
+  .form-row {
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    padding: 20px;
-    background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
-    font-family: 'Arial', sans-serif;
   }
-  
-  .job-form-container form {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    width: 100%;
-    max-width: 500px;
-  }
-  
-  .job-form-container label {
-    margin-top: 10px;
-    color: #666;
-  }
-  
-  .job-form-container input, .job-form-container select, .job-form-container textarea {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-  
-  .job-form-container button {
-    padding: 10px;
-    width: 100%;
-    background-color: #22c1c3;
-    border: none;
-    color: white;
-    font-weight: bold;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .job-form-container button:hover {
-    background-color: #2EE59D;
-  }
-  
+}
+
+/* Each .form-group in a row gets half width */
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px; /* spacing for single-column groups */
+}
+
+/* ========== Required Field Asterisk ========== */
+.required::after {
+  content: "*";
+  color: red;
+  margin-left: 4px;
+}
+
+/* ========== Labels & Inputs ========== */
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #444;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* ========== Feedback Section ========== */
+.feedback-section {
+  background: #f9f9f9;
+  border: 1px dashed #E5E7EB; /* unify with table border color */
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+.feedback-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: #666;
+}
+
+/* Info Icon Styling */
+.info-icon {
+  margin-left: 5px;
+  color: #999;
+  cursor: help;
+}
+.info-icon:hover {
+  color: #666;
+}
+
+/* ========== Form Actions ========== */
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+/* Primary & Secondary Buttons */
+.primary-button,
+.secondary-button {
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+/* Primary (purple) button to match Job List */
+.primary-button {
+  background-color: #6C63FF;
+  color: #fff;
+}
+.primary-button:hover {
+  background-color: #5A54D7;
+}
+
+/* Secondary (outline) button with same purple color */
+.secondary-button {
+  background-color: transparent;
+  color: #6C63FF;
+  border: 2px solid #6C63FF;
+}
+.secondary-button:hover {
+  background-color: #5A54D7;
+  color: #fff;
+}
+
+/* ========== Error Message ========== */
+.error-message {
+  margin-top: 15px;
+  color: #ff4d4d;
+  text-align: center;
+  font-weight: bold;
+}

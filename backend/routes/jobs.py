@@ -133,38 +133,43 @@ def create_or_list_jobs():
 
 @jobs_bp.route('/<int:job_id>', methods=['GET'])
 def get_job(job_id):
-    """Retrieve a single job application with full feedback details, including category name & created_at."""
+    """Retrieve a single job application with full feedback details, including feedback id."""
     try:
         query = text("""
         SELECT 
-            ja.id, ja.job_title, ja.company, ja.status, ja.general_notes, 
-            ja.applied_date, ja.created_at, ja.role_category,
-            f.notes, f.detailed_feedback, f.key_improvements, f.key_strengths, f.category_id,
-            fc.name AS category_name, fc.type AS category_type
+            ja.id, 
+            ja.job_title, 
+            ja.company, 
+            ja.status, 
+            ja.general_notes, 
+            ja.applied_date, 
+            ja.created_at, 
+            ja.role_category,
+            f.id AS feedback_id,
+            f.notes, 
+            f.detailed_feedback, 
+            f.key_improvements, 
+            f.key_strengths, 
+            f.category_id,
+            fc.name AS category_name, 
+            fc.type AS category_type
         FROM job_application ja
         LEFT JOIN feedback f ON ja.id = f.job_id
         LEFT JOIN feedback_category fc ON f.category_id = fc.id
         WHERE ja.id = :job_id;
         """)
-
+        
         result = db.session.execute(query, {"job_id": job_id}).fetchone()
-
         if not result:
             return jsonify({"message": "Job not found"}), 404
 
-        # ✅ Convert applied_date and created_at safely
+        # Format dates safely
         applied_date = result[5]
         created_at = result[6]
-
-        if isinstance(applied_date, str):
-            applied_date = applied_date  # If already a string, keep it
-        elif applied_date:
-            applied_date = applied_date.strftime("%Y-%m-%d")  # Format only if it's a datetime
-
-        if isinstance(created_at, str):
-            created_at = created_at  # If already a string, keep it
-        elif created_at:
-            created_at = created_at.strftime("%Y-%m-%d %H:%M:%S")  # Format only if it's a datetime
+        if applied_date and not isinstance(applied_date, str):
+            applied_date = applied_date.strftime("%Y-%m-%d")
+        if created_at and not isinstance(created_at, str):
+            created_at = created_at.strftime("%Y-%m-%d %H:%M:%S")
 
         job_data = {
             "id": result[0],
@@ -172,73 +177,80 @@ def get_job(job_id):
             "company": result[2],
             "status": result[3],
             "general_notes": result[4],
-            "applied_date": applied_date,  # ✅ Fixed issue
-            "created_at": created_at,  # ✅ Fixed issue
+            "applied_date": applied_date,
+            "created_at": created_at,
             "role_category": result[7],
             "feedback": {
-                "notes": result[8],
-                "detailed_feedback": result[9],
-                "key_improvements": result[10],
-                "key_strengths": result[11],
-                "category_id": result[12],
-                "category_name": result[13] if result[13] else "No category",  # ✅ Fixed issue
-                "category_type": result[14] if result[14] else "N/A"  # ✅ Fixed issue
+                "id": result[8],  # feedback_id
+                "notes": result[9] if result[9] is not None else '',
+                "detailed_feedback": result[10] if result[10] is not None else '',
+                "key_improvements": result[11] if result[11] is not None else '',
+                "key_strengths": result[12] if result[12] is not None else '',
+                "category_id": result[13],
+                "category_name": result[14] if result[14] else "No category",
+                "category_type": result[15] if result[15] else "N/A"
             }
         }
-
         return jsonify(job_data), 200
+
     except Exception as e:
         print(f"❌ ERROR in `get_job`: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+
 @jobs_bp.route('/jobs/<int:job_id>/feedback', methods=['POST', 'PUT'])
 @jwt_required()
 def handle_feedback(job_id):
-    """Create or update feedback for a job application and sync general_notes."""
     try:
         data = request.get_json()
+        print("DEBUG: Received feedback request. Method:", request.method)
+        print("DEBUG: Feedback data:", data)
 
-        # ✅ Check if job exists and get status
+        # Check if job exists and get its status
         job_check_query = text("SELECT id, status FROM job_application WHERE id = :job_id")
         job = db.session.execute(job_check_query, {"job_id": job_id}).fetchone()
         if not job:
+            print("DEBUG: Job not found for id:", job_id)
             return jsonify({"message": "Job not found"}), 404
 
-        # ✅ Default category_id to "No Feedback" (ID = 100) if missing
+        # Default category_id if missing
         if not data.get("category_id"):
-            if job.status in ["applied", "interview"]:  
-                data["category_id"] = 100  
+            if job.status in ["applied", "interview"]:
+                data["category_id"] = 100
 
-        # ✅ Determine `key_feedback` based on status
+        # Determine key improvements/strengths based on status
         key_improvements = None
         key_strengths = None
-
         if job.status == "rejected":
             key_improvements = data.get("key_improvements", None)
         elif job.status in ["accepted", "offer"]:
             key_strengths = data.get("key_strengths", None)
 
-        # ✅ Combine feedback into `general_notes`
+        # Optional: Combine feedback into general notes (for logging or future sync)
         general_notes = "\n\n".join(filter(None, [
             data.get("notes", ""),
             data.get("detailed_feedback", ""),
             f"Key Improvements: {key_improvements}" if key_improvements else None,
             f"Key Strengths: {key_strengths}" if key_strengths else None
         ])).strip()
+        print("DEBUG: Combined general_notes (if needed):", general_notes)
 
-        # ✅ Check if feedback already exists
+        # Check if feedback already exists
         feedback_check_query = text("SELECT id FROM feedback WHERE job_id = :job_id")
         feedback_exists = db.session.execute(feedback_check_query, {"job_id": job_id}).fetchone()
+        print("DEBUG: feedback_exists:", feedback_exists)
 
         if request.method == 'POST':
             if feedback_exists:
+                print("DEBUG: POST branch: Feedback already exists for job", job_id)
                 return jsonify({"message": "Feedback already exists for this job"}), 400
 
-            insert_query = text("""
-            INSERT INTO feedback (job_id, category_id, notes, detailed_feedback, key_improvements, key_strengths)
-            VALUES (:job_id, :category_id, :notes, :detailed_feedback, :key_improvements, :key_strengths);
+            # Insert new feedback
+            insert_feedback_query = text("""
+                INSERT INTO feedback (job_id, category_id, notes, detailed_feedback, key_improvements, key_strengths)
+                VALUES (:job_id, :category_id, :notes, :detailed_feedback, :key_improvements, :key_strengths);
             """)
-            db.session.execute(insert_query, {
+            db.session.execute(insert_feedback_query, {
                 "job_id": job_id,
                 "category_id": data["category_id"],
                 "notes": data.get("notes", ""),
@@ -246,16 +258,19 @@ def handle_feedback(job_id):
                 "key_improvements": key_improvements,
                 "key_strengths": key_strengths
             })
+            print("DEBUG: Inserting new feedback for job", job_id)
 
         elif request.method == 'PUT':
             if not feedback_exists:
+                print("DEBUG: PUT branch: Feedback not found for job", job_id)
                 return jsonify({"message": "Feedback not found"}), 404
 
+            # Update existing feedback
             update_query = text("""
-            UPDATE feedback
-            SET category_id = :category_id, notes = :notes, detailed_feedback = :detailed_feedback, 
-                key_improvements = :key_improvements, key_strengths = :key_strengths
-            WHERE job_id = :job_id;
+                UPDATE feedback
+                SET category_id = :category_id, notes = :notes, detailed_feedback = :detailed_feedback, 
+                    key_improvements = :key_improvements, key_strengths = :key_strengths
+                WHERE job_id = :job_id;
             """)
             db.session.execute(update_query, {
                 "job_id": job_id,
@@ -265,14 +280,20 @@ def handle_feedback(job_id):
                 "key_improvements": key_improvements,
                 "key_strengths": key_strengths
             })
+            print("DEBUG: Updating existing feedback for job", job_id)
+        else:
+            print("DEBUG: Received unsupported method:", request.method)
 
         db.session.commit()
+        print("DEBUG: Feedback operation committed successfully for job", job_id)
         return jsonify({"message": "Feedback saved successfully and job updated"}), 200
 
     except Exception as e:
         db.session.rollback()
         print(f"❌ ERROR in `handle_feedback`: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+
 
 @jobs_bp.route('/jobs/<int:job_id>', methods=['DELETE', 'OPTIONS'])
 @cross_origin()
@@ -319,4 +340,73 @@ def get_feedback_categories():
         return jsonify(result), 200
     except Exception as e:
         print(f"❌ ERROR in `get_feedback_categories`: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
+@jobs_bp.route('/<int:job_id>', methods=['PUT'])
+@jwt_required()
+@cross_origin()
+def update_job(job_id):
+    """Update job application fields (job_title, company, status, etc.)."""
+    try:
+        # Get current user ID from JWT and convert to int
+        current_user_id = int(get_jwt_identity())
+
+        # Get the JSON data from the request
+        data = request.get_json()
+        if 'job_title' not in data or 'company' not in data:
+            return jsonify({"message": "Missing required fields"}), 400
+
+        # Fetch the job's owner from the database
+        job_check_query = text("SELECT user_id FROM job_application WHERE id = :job_id")
+        row = db.session.execute(job_check_query, {"job_id": job_id}).fetchone()
+
+        if not row:
+            return jsonify({"message": "Job not found"}), 404
+
+        # Convert the fetched user_id to int for a fair comparison
+        db_user_id = int(row[0])
+        print(f"DEBUG: DB user_id: {db_user_id}, Current user_id: {current_user_id}")
+
+        if db_user_id != current_user_id:
+            return jsonify({"message": "Unauthorized"}), 403
+
+        # Process the applied_date if provided
+        applied_date = None
+        if data.get('applied_date'):
+            try:
+                applied_date = datetime.strptime(data['applied_date'], "%Y-%m-%d").date()
+            except Exception as e:
+                return jsonify({"message": "Invalid applied_date format"}), 400
+
+        # Build and execute the update query
+        update_query = text("""
+            UPDATE job_application
+            SET 
+              job_title = :job_title,
+              company = :company,
+              role_category = :role_category,
+              status = :status,
+              applied_date = :applied_date,
+              general_notes = :general_notes
+            WHERE id = :job_id
+        """)
+
+        db.session.execute(update_query, {
+            "job_id": job_id,
+            "job_title": data['job_title'],
+            "company": data['company'],
+            "role_category": data.get('role_category'),
+            "status": data.get('status', 'applied'),
+            "applied_date": applied_date,
+            "general_notes": data.get('general_notes', '')
+        })
+
+        db.session.commit()
+        return jsonify({"message": "Job updated successfully by update job"}), 200
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500

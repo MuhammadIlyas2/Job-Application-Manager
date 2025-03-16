@@ -19,7 +19,7 @@ export class JobFormComponent {
     company: '',
     status: 'applied',
     general_notes: '',
-    feedbackSummary: '',  // Short summary (50 chars)
+    feedbackSummary: '', // short summary
     feedback: {
       notes: '',
       category_id: null,
@@ -56,6 +56,7 @@ export class JobFormComponent {
       this.setCurrentUser();
     }
 
+    // Default status if none provided
     if (!this.job.status) {
       this.job.status = 'applied';
     }
@@ -65,77 +66,55 @@ export class JobFormComponent {
     this.jobService.getFeedbackCategories().subscribe({
       next: (res) => {
         this.feedbackCategories = res;
-        //console.log('✅ Loaded Categories:', this.feedbackCategories); // Debugging log
-        this.filterCategories(); // Apply filtering after loading categories
+        this.filterCategories(); // filter after loading
       },
       error: (err) => {
-        console.error('❌ Failed to load categories:', err);
+        console.error('Failed to load categories:', err);
         this.errorMessage = 'Failed to load feedback categories';
       }
     });
   }
-  
-  // ✅ Filter categories based on status
+
+  // Filter categories based on status
   filterCategories(): void {
-    //console.log('🔄 Filtering Categories...');
-    //console.log('🟡 Current Status:', this.job.status);
-  
     if (!this.feedbackCategories || this.feedbackCategories.length === 0) {
-      console.warn('⚠️ Categories Not Loaded Yet');
       return;
     }
-  
+
     let allowedTypes: string[] = [];
-  
+
     if (this.job.status === 'offer' || this.job.status === 'accepted') {
       allowedTypes = ['positive', 'neutral'];
     } else if (this.job.status === 'rejected') {
       allowedTypes = ['negative', 'neutral'];
     } else {
-      allowedTypes = ['positive', 'negative', 'neutral']; // Show all for applied/interview
+      allowedTypes = ['positive', 'negative', 'neutral']; // for 'applied', 'interview'
     }
-  
-    //console.log('✅ Allowed Types:', allowedTypes);
-  
+
     this.filteredCategories = this.feedbackCategories.filter(cat => {
-      const categoryType = typeof cat.type === 'string' ? cat.type.trim().toLowerCase() : ''; 
-      const isAllowed = allowedTypes.includes(categoryType);
-      
-      //console.log(`Checking Category: ${cat.name} (Type: ${categoryType}) -> ${isAllowed ? '✅ Kept' : '❌ Filtered Out'}`);
-      
-      return isAllowed;
+      const categoryType = (cat.type || '').trim().toLowerCase();
+      return allowedTypes.includes(categoryType);
     });
-  
-    //console.log('🔽 Final Filtered Categories:', this.filteredCategories);
   }
-  
-  
-  // ✅ Auto-update categories when status changes
+
+  // Called whenever status changes
   onStatusChange(): void {
-    //console.log('🔄 Status Changed BEFORE:', this.job.status);
-  
     if (!this.job.status) {
-      console.warn('⚠️ Status is Undefined! Setting default.');
       this.job.status = 'applied';
     }
-  
     this.filterCategories();
-  
-    //console.log('✅ Status Changed AFTER:', this.job.status);
-    //console.log('🔍 Updated Filtered Categories:', this.filteredCategories);
   }
 
   private loadJob(jobId: string): void {
     this.jobService.getJobById(+jobId).subscribe({
       next: (res) => {
-        console.log("✅ Raw API Response:", res);  // Debugging log
-  
-        // Ensure proper job structure
+        // Assign feedback with its id (if it exists)
         this.job = {
           ...res,
-          role_category: res.role_category || '',  // Handle null role_category
+          role_category: res.role_category || '',
           applied_date: res.applied_date ? new Date(res.applied_date).toISOString().split('T')[0] : '',
           feedback: {
+            id: res.feedback.id, // Now assigns the feedback id (may be undefined if no feedback exists)
             notes: res.feedback?.notes || '',
             detailed_feedback: res.feedback?.detailed_feedback || '',
             key_improvements: res.feedback?.key_improvements || '',
@@ -144,76 +123,81 @@ export class JobFormComponent {
           }
         };
   
-        // ✅ FIX: Properly assign feedbackSummary
+        // Set feedbackSummary from feedback.notes if available
         if (typeof this.job.feedback.notes === 'string') {
           this.job.feedbackSummary = this.job.feedback.notes;
         } else {
           this.job.feedbackSummary = '';
         }
-  
-        console.log("🛠 Processed Job Data:", this.job);  // Debugging log
         this.filterCategories();
       },
       error: (err) => this.handleError(err)
     });
   }
-  
+
   submitForm(): void {
-    // Combine feedback fields with double newline separator
-
-   // console.log('🚀 Submitting Form with Status:', this.job.status);
-
-  if (!this.job.status) {
-    console.warn('⚠️ Status is still undefined before submitting!');
-    return;
-  }
+    // Combine short summary + notes if needed
     const combinedNotes = [
       this.job.feedbackSummary,
       this.job.feedback.notes
     ].filter(text => text.trim()).join('\n\n');
-  
+
     const jobData = { ...this.job };
 
-    
-    // Remove feedback from job data
+    // Separate out feedback
     const feedbackData = {
       notes: this.job.feedbackSummary.substring(0, 50),
       category_id: this.job.feedback.category_id,
       detailed_feedback: this.job.feedback.detailed_feedback,
-      key_improvements: this.job.status === 'rejected' ? this.job.feedback.key_improvements : '',
-      key_strengths: (this.job.status === 'accepted' || this.job.status === 'offer') ? this.job.feedback.key_strengths : ''
+      key_improvements: this.job.status === 'rejected' 
+        ? this.job.feedback.key_improvements 
+        : '',
+      key_strengths: (this.job.status === 'accepted' || this.job.status === 'offer')
+        ? this.job.feedback.key_strengths
+        : ''
     };
     delete jobData.feedback;
 
-    const operation = this.isEditMode 
+    // Create or Update
+    const operation = this.isEditMode
       ? this.jobService.updateJob(this.job.id, jobData)
       : this.jobService.createJob(jobData);
 
-      operation.subscribe({
-        next: (res) => {
-          const jobId = this.isEditMode ? this.job.id : res.job.id;
-          if (feedbackData.notes.trim() || feedbackData.category_id) {
-            this.handleFeedback(jobId, feedbackData);
-          } else {
-            this.router.navigate(['/jobs']);
-          }
-        },
-        error: (err) => this.handleError(err)
-      });
+    operation.subscribe({
+      next: (res) => {
+        const jobId = this.isEditMode ? this.job.id : res.job.id;
 
-      //console.log('📤 Final Job Data:', jobData);
-      //console.log('📤 Final Feedback Data:', feedbackData);    
-    }
+        // If we have any feedback, save it
+        if (feedbackData.notes.trim() || feedbackData.category_id) {
+          this.handleFeedback(jobId, feedbackData);
+        } else {
+          // Otherwise, just navigate back
+          this.router.navigate(['/jobs']);
+        }
+      },
+      error: (err) => this.handleError(err)
+    });
+  }
 
   private handleFeedback(jobId: number, feedbackData: any): void {
+    console.log("DEBUG: In handleFeedback. Existing feedback id:", this.job.feedback?.id);
     const operation = this.job.feedback?.id
       ? this.jobService.updateFeedback(jobId, feedbackData)
       : this.jobService.createFeedback(jobId, feedbackData);
-
+  
+    if (this.job.feedback?.id) {
+      console.log("DEBUG: Calling updateFeedback (PUT) for job", jobId, "with data:", feedbackData);
+    } else {
+      console.log("DEBUG: Calling createFeedback (POST) for job", jobId, "with data:", feedbackData);
+    }
+  
     operation.subscribe({
-      next: () => this.router.navigate(['/jobs']),
+      next: () => {
+        console.log("DEBUG: Feedback operation successful");
+        this.router.navigate(['/jobs']);
+      },
       error: (err) => {
-        console.error('Feedback save failed', err);
+        console.error("Feedback save failed", err);
         this.errorMessage += '\nFailed to save feedback details';
       }
     });
