@@ -1,18 +1,14 @@
-/* ========== Body Background (if not set globally) ========== */
+/* ========== Body & Container ========== */
 body {
-  background: #F3F4F6; /* matches Job List page */
-  color: #1F2937;      /* unify text color with Job List */
+  background: #F3F4F6;
+  color: #1F2937;
   font-family: 'Segoe UI', Tahoma, sans-serif;
 }
-
-/* Ensure html/body fill the entire browser height */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
 }
-
-/* .job-form-container now fills the screen vertically */
 .job-form-container {
   min-height: 100vh;
   width: 100%;
@@ -20,7 +16,6 @@ html, body {
   background: #F3F4F6;
   padding: 20px;
   box-sizing: border-box;
-
   display: flex;
   flex-direction: column;
 }
@@ -30,7 +25,7 @@ html, body {
   text-align: center;
   margin-bottom: 5px;
   font-size: 28px;
-  color: #6C63FF; /* unify with Job List's purple */
+  color: #6C63FF;
 }
 .form-subtitle {
   text-align: center;
@@ -41,13 +36,13 @@ html, body {
 
 /* ========== Form Card ========== */
 .job-form-container form {
-  background: #FAFAFA; /* same off-white as the Job List container */
+  background: #FAFAFA;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   padding: 20px;
 }
 
-/* ========== Two-Column Layout for .form-row ========== */
+/* ========== Two-Column Layout ========== */
 .form-row {
   display: flex;
   gap: 20px;
@@ -58,24 +53,22 @@ html, body {
     flex-direction: column;
   }
 }
-
-/* Each .form-group in a row gets half width */
 .form-group {
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-bottom: 24px; /* spacing for single-column groups */
-  position: relative;  /* needed if we do suggestions for main form fields too */
+  margin-bottom: 24px;
+  position: relative;
 }
 
-/* ========== Required Field Asterisk ========== */
+/* Required Asterisk */
 .required::after {
   content: "*";
   color: red;
   margin-left: 4px;
 }
 
-/* ========== Labels & Inputs ========== */
+/* ========== Inputs & Labels ========== */
 .form-group label {
   font-weight: 600;
   margin-bottom: 5px;
@@ -113,10 +106,65 @@ html, body {
   color: #666;
 }
 
+/* ========== Additional Strengths as a Chain ========== */
+.strengths-improvements-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.priority-strength-improvement input {
+  width: 250px; /* same size as additional inputs */
+}
+.chain-add-icon {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 32px;
+  background-color: #ccc;
+  color: #171717;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity 0.3s;
+  font-size: 20px;
+}
+.chain-add-icon:hover {
+  opacity: 1;
+}
+.chain-strengths-improvements {
+  margin-top: 10px;
+}
+.chain-strength-improvement-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.chain-strength-improvement-row input {
+  width: 250px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.chain-remove-icon {
+  background: none;
+  border: none;
+  color: #ff4d4d;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  margin-left: 5px;
+}
+.chain-remove-icon:hover {
+  color: #ff1a1a;
+}
+
 /* ========== Suggestions (Autocomplete) ========== */
 .suggestions {
   position: absolute;
-  top: 100%;     /* Directly under the input */
+  top: 100%;
   left: 0;
   right: 0;
   max-height: 150px;
@@ -125,7 +173,7 @@ html, body {
   border: 1px solid #ddd;
   border-radius: 4px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  z-index: 9999; /* ensure it appears above the next fields */
+  z-index: 9999;
   margin-top: 2px;
   padding: 0;
   list-style: none;
@@ -153,8 +201,6 @@ html, body {
   font-size: 18px;
   color: #666;
 }
-
-/* Container for Q&A items */
 .qa-entry {
   margin-bottom: 15px;
   background: #fff;
@@ -162,13 +208,10 @@ html, body {
   border-radius: 6px;
   padding: 8px;
 }
-
 .question-input-wrapper {
-  position: relative;   /* This anchors .suggestions directly below the input */
-  margin-bottom: 8px;   /* Some spacing if you want a small gap after the input */
+  position: relative;
+  margin-bottom: 8px;
 }
-
-/* Q&A input fields inside .qa-entry */
 .qa-entry input[type="text"],
 .qa-entry textarea {
   width: 100%;
@@ -183,7 +226,6 @@ html, body {
   font-weight: 600;
   color: #333;
 }
-
 .danger-button {
   background-color: #ff4d4d;
   color: #fff;
@@ -195,7 +237,6 @@ html, body {
   font-weight: bold;
   transition: background 0.3s;
 }
-
 .danger-button:hover {
   background-color: #ff2f2f;
 }
@@ -207,8 +248,6 @@ html, body {
   margin-top: 20px;
   justify-content: flex-end;
 }
-
-/* Primary & Secondary Buttons */
 .primary-button,
 .secondary-button {
   padding: 10px 20px;

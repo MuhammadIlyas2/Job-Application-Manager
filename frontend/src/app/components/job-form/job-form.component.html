@@ -122,10 +122,7 @@
           (change)="onStatusChange()"
         >
           <option [ngValue]="null">Select Category</option>
-          <option
-            *ngFor="let cat of filteredCategories"
-            [value]="cat.id"
-          >
+          <option *ngFor="let cat of filteredCategories" [value]="cat.id">
             {{ cat.name }}
           </option>
         </select>
@@ -148,39 +145,118 @@
         ></textarea>
       </div>
 
-      <!-- Key Improvements (Only for Rejected) -->
+      <!-- Key Improvements (Chain-based) (Only for Rejected) -->
       <div class="form-group" *ngIf="job.status === 'rejected'">
-        <label>
-          Key Improvements
-          <i
-            class="fas fa-question-circle info-icon"
-            title="Suggest areas where the applicant can improve."
-          ></i>
-        </label>
-        <textarea
-          [(ngModel)]="job.feedback.key_improvements"
-          name="keyImprovements"
-          rows="3"
-        ></textarea>
+        <label>Key Improvements</label>
+        <!-- Container for priority + chain -->
+        <div class="strengths-improvements-container">
+          <!-- Priority improvement input -->
+          <div class="priority-strength-improvement">
+            <input
+              type="text"
+              [(ngModel)]="job.feedback.priority_improvement"
+              name="priorityImprovement"
+              placeholder="Priority improvement"
+            />
+          </div>
+          <!-- Chain icon to add the first additional improvement -->
+          <span
+            class="chain-add-icon"
+            (click)="addAdditionalImprovement()"
+            title="Add additional improvement"
+          >
+            +
+          </span>
+        </div>
+
+        <!-- Additional improvements chain -->
+        <div class="chain-strengths-improvements" *ngIf="job.feedback.additional_improvements.length > 0">
+          <div
+            class="chain-strength-improvement-row"
+            *ngFor="let improvement of job.feedback.additional_improvements; let i = index"
+          >
+            <input
+              type="text"
+              [(ngModel)]="job.feedback.additional_improvements[i]"
+              name="additionalImprovement{{ i }}"
+              placeholder="Additional improvement"
+            />
+            <span
+              class="chain-add-icon"
+              (click)="addAdditionalImprovement()"
+              title="Add another improvement"
+            >
+              +
+            </span>
+            <button
+              type="button"
+              class="chain-remove-icon"
+              (click)="removeAdditionalImprovement(i)"
+              title="Remove improvement"
+            >
+              ×
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- Key Strengths (Only for Accepted/Offer) -->
+      <!-- Key Strengths (Chain-based) (Only for Accepted/Offer) -->
       <div
         class="form-group"
         *ngIf="job.status === 'accepted' || job.status === 'offer'"
       >
-        <label>
-          Key Strengths
-          <i
-            class="fas fa-question-circle info-icon"
-            title="Highlight what stood out positively."
-          ></i>
-        </label>
-        <textarea
-          [(ngModel)]="job.feedback.key_strengths"
-          name="keyStrengths"
-          rows="3"
-        ></textarea>
+        <label>Key Strengths</label>
+
+        <!-- Priority + Additional as a chain -->
+        <div class="strengths-improvements-container">
+          <!-- Priority strength input -->
+          <div class="priority-strength-improvement">
+            <input
+              type="text"
+              [(ngModel)]="job.feedback.priority_strength"
+              name="priorityStrength"
+              placeholder="Priority strength"
+            />
+          </div>
+          <!-- The chain icon next to priority to add the first additional strength -->
+          <span
+            class="chain-add-icon"
+            (click)="addAdditionalStrength()"
+            title="Add additional strength"
+          >
+            +
+          </span>
+        </div>
+
+        <!-- Additional strengths chain -->
+        <div class="chain-strengths-improvements" *ngIf="job.feedback.additional_strengths.length > 0">
+          <div
+            class="chain-strength-improvement-row"
+            *ngFor="let strength of job.feedback.additional_strengths; let i = index"
+          >
+            <input
+              type="text"
+              [(ngModel)]="job.feedback.additional_strengths[i]"
+              name="additionalStrength{{ i }}"
+              placeholder="Additional strength"
+            />
+            <span
+              class="chain-add-icon"
+              (click)="addAdditionalStrength()"
+              title="Add another strength"
+            >
+              +
+            </span>
+            <button
+              type="button"
+              class="chain-remove-icon"
+              (click)="removeAdditionalStrength(i)"
+              title="Remove strength"
+            >
+              ×
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -204,22 +280,19 @@
       </div>
     </div>
 
-    <!-- Interview Q&A Section (collapsible) -->
+    <!-- Interview Q&A Section -->
     <div
       *ngIf="showInterviewQASection"
       class="interview-qa-section"
     >
       <h3>Interview Q&A</h3>
-
-      <!-- List of added Q&A items -->
+      <!-- List of Q&A items -->
       <div class="selected-qa" *ngIf="selectedQA.length > 0">
         <div
           *ngFor="let qa of selectedQA; let i = index"
           class="qa-entry"
         >
           <p><strong>Q{{ i + 1 }}:</strong></p>
-
-          <!-- The question input wrapper (positions the suggestions) -->
           <div class="question-input-wrapper">
             <input
               type="text"
@@ -229,7 +302,6 @@
               placeholder="Interview question"
               (input)="onQAQuestionInputChange($event, i)"
             />
-            <!-- Autocomplete suggestions anchored below the input -->
             <ul
               class="suggestions"
               *ngIf="qaSuggestions[i] && qaSuggestions[i].length > 0"
@@ -243,7 +315,6 @@
               </li>
             </ul>
           </div>
-
           <p><strong>Your Answer:</strong></p>
           <textarea
             [(ngModel)]="qa.answer"
@@ -251,8 +322,6 @@
             name="answer{{ i }}"
             placeholder="Your answer..."
           ></textarea>
-
-          <!-- Remove button for each Q&A entry -->
           <button
             type="button"
             class="danger-button"
@@ -262,8 +331,7 @@
           </button>
         </div>
       </div>
-
-      <!-- Button to add a new blank Q&A -->
+      <!-- Button to add a new Q&A entry -->
       <div class="form-group">
         <button
           type="button"
@@ -290,7 +358,7 @@
     </div>
   </form>
 
-  <!-- Error message if something goes wrong -->
+  <!-- Error Message -->
   <div
     *ngIf="errorMessage"
     class="error-message"
