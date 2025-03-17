@@ -14,13 +14,15 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./job-form.component.css']
 })
 export class JobFormComponent {
+  // Main job properties
   job: any = {
     job_title: '',
     company: '',
     status: 'applied',
     general_notes: '',
-    feedbackSummary: '', // short summary
+    feedbackSummary: '',
     feedback: {
+      id: undefined,
       notes: '',
       category_id: null,
       detailed_feedback: '',
@@ -31,10 +33,20 @@ export class JobFormComponent {
 
   feedbackCategories: any[] = [];
   filteredCategories: any[] = [];
-  isEditMode = false;
-  errorMessage = '';
   roles: any[] = [];
   statuses = ['applied', 'interview', 'offer', 'accepted', 'rejected'];
+  isEditMode = false;
+  errorMessage = '';
+
+  // ---------------- Interview Q&A properties ----------------
+  showInterviewQASection = false;
+  // Q&A array. Each entry: { id?: number, question: string, answer: string }
+  selectedQA: { id?: number; question: string; answer: string }[] = [];
+  // Autocomplete suggestions per Q&A index
+  qaSuggestions: { [index: number]: any[] } = {};
+  // Full recommended questions from backend
+  questionBank: any[] = [];
+  usedQuestionIds = new Set<number>();
 
   constructor(
     private jobService: JobService,
@@ -52,11 +64,13 @@ export class JobFormComponent {
     if (jobId) {
       this.isEditMode = true;
       this.loadJob(jobId);
+      this.fetchRecommendedQuestions(+jobId);
     } else {
       this.setCurrentUser();
+      // For new jobs, fetch all recommended questions
+      this.fetchRecommendedQuestions(null);
     }
 
-    // Default status if none provided
     if (!this.job.status) {
       this.job.status = 'applied';
     }
@@ -65,8 +79,9 @@ export class JobFormComponent {
   private loadFeedbackCategories(): void {
     this.jobService.getFeedbackCategories().subscribe({
       next: (res) => {
+        console.log("DEBUG: Loaded feedback categories:", res);
         this.feedbackCategories = res;
-        this.filterCategories(); // filter after loading
+        this.filterCategories();
       },
       error: (err) => {
         console.error('Failed to load categories:', err);
@@ -75,12 +90,8 @@ export class JobFormComponent {
     });
   }
 
-  // Filter categories based on status
   filterCategories(): void {
-    if (!this.feedbackCategories || this.feedbackCategories.length === 0) {
-      return;
-    }
-
+    if (!this.feedbackCategories || this.feedbackCategories.length === 0) return;
     let allowedTypes: string[] = [];
 
     if (this.job.status === 'offer' || this.job.status === 'accepted') {
@@ -88,7 +99,7 @@ export class JobFormComponent {
     } else if (this.job.status === 'rejected') {
       allowedTypes = ['negative', 'neutral'];
     } else {
-      allowedTypes = ['positive', 'negative', 'neutral']; // for 'applied', 'interview'
+      allowedTypes = ['positive', 'negative', 'neutral'];
     }
 
     this.filteredCategories = this.feedbackCategories.filter(cat => {
@@ -97,24 +108,31 @@ export class JobFormComponent {
     });
   }
 
-  // Called whenever status changes
   onStatusChange(): void {
     if (!this.job.status) {
       this.job.status = 'applied';
     }
     this.filterCategories();
+
+    // If we already have a jobId, we can re-fetch recommended Q's
+    if (this.job && this.job.id) {
+      console.log("DEBUG: onStatusChange -> jobId:", this.job.id);
+      this.fetchRecommendedQuestions(this.job.id);
+    }
   }
 
   private loadJob(jobId: string): void {
     this.jobService.getJobById(+jobId).subscribe({
       next: (res) => {
-        // Assign feedback with its id (if it exists)
+        console.log("DEBUG: Loaded job:", res);
+        this.isEditMode = true;
+
         this.job = {
           ...res,
           role_category: res.role_category || '',
           applied_date: res.applied_date ? new Date(res.applied_date).toISOString().split('T')[0] : '',
           feedback: {
-            id: res.feedback.id, // Now assigns the feedback id (may be undefined if no feedback exists)
+            id: res.feedback?.id,
             notes: res.feedback?.notes || '',
             detailed_feedback: res.feedback?.detailed_feedback || '',
             key_improvements: res.feedback?.key_improvements || '',
@@ -122,13 +140,12 @@ export class JobFormComponent {
             category_id: res.feedback?.category_id || null
           }
         };
-  
-        // Set feedbackSummary from feedback.notes if available
-        if (typeof this.job.feedback.notes === 'string') {
-          this.job.feedbackSummary = this.job.feedback.notes;
-        } else {
-          this.job.feedbackSummary = '';
-        }
+
+        // Initialize feedbackSummary from notes
+        this.job.feedbackSummary = typeof this.job.feedback.notes === 'string'
+          ? this.job.feedback.notes
+          : '';
+
         this.filterCategories();
       },
       error: (err) => this.handleError(err)
@@ -136,29 +153,27 @@ export class JobFormComponent {
   }
 
   submitForm(): void {
-    // Combine short summary + notes if needed
     const combinedNotes = [
       this.job.feedbackSummary,
       this.job.feedback.notes
     ].filter(text => text.trim()).join('\n\n');
 
     const jobData = { ...this.job };
-
-    // Separate out feedback
     const feedbackData = {
       notes: this.job.feedbackSummary.substring(0, 50),
       category_id: this.job.feedback.category_id,
       detailed_feedback: this.job.feedback.detailed_feedback,
-      key_improvements: this.job.status === 'rejected' 
-        ? this.job.feedback.key_improvements 
+      key_improvements: this.job.status === 'rejected'
+        ? this.job.feedback.key_improvements
         : '',
       key_strengths: (this.job.status === 'accepted' || this.job.status === 'offer')
         ? this.job.feedback.key_strengths
         : ''
     };
+
+    // Remove feedback from jobData to avoid confusion in the final object
     delete jobData.feedback;
 
-    // Create or Update
     const operation = this.isEditMode
       ? this.jobService.updateJob(this.job.id, jobData)
       : this.jobService.createJob(jobData);
@@ -166,12 +181,10 @@ export class JobFormComponent {
     operation.subscribe({
       next: (res) => {
         const jobId = this.isEditMode ? this.job.id : res.job.id;
-
-        // If we have any feedback, save it
+        // If we have any feedback details, save them
         if (feedbackData.notes.trim() || feedbackData.category_id) {
           this.handleFeedback(jobId, feedbackData);
         } else {
-          // Otherwise, just navigate back
           this.router.navigate(['/jobs']);
         }
       },
@@ -180,32 +193,125 @@ export class JobFormComponent {
   }
 
   private handleFeedback(jobId: number, feedbackData: any): void {
-    console.log("DEBUG: In handleFeedback. Existing feedback id:", this.job.feedback?.id);
+    console.log("DEBUG: In handleFeedback. feedbackId:", this.job.feedback?.id);
+
     const operation = this.job.feedback?.id
       ? this.jobService.updateFeedback(jobId, feedbackData)
       : this.jobService.createFeedback(jobId, feedbackData);
-  
-    if (this.job.feedback?.id) {
-      console.log("DEBUG: Calling updateFeedback (PUT) for job", jobId, "with data:", feedbackData);
-    } else {
-      console.log("DEBUG: Calling createFeedback (POST) for job", jobId, "with data:", feedbackData);
-    }
-  
+
     operation.subscribe({
       next: () => {
         console.log("DEBUG: Feedback operation successful");
+        // Optionally, save Q&A items here if you have a specific backend endpoint
         this.router.navigate(['/jobs']);
       },
       error: (err) => {
-        console.error("Feedback save failed", err);
+        console.error("DEBUG: Feedback save failed", err);
         this.errorMessage += '\nFailed to save feedback details';
       }
     });
   }
 
+  // ---------------- Interview Q&A Methods ----------------
+
+  /**
+   * Toggles the Interview Q&A section. If user is opening it the first time
+   * and there are no Q&A items yet, automatically add the first item.
+   */
+  toggleInterviewQA(): void {
+    if (!this.showInterviewQASection && this.selectedQA.length === 0) {
+      this.addInterviewQA();
+    }
+    this.showInterviewQASection = !this.showInterviewQASection;
+  }
+
+  /** Adds a blank Q&A entry. */
+  addInterviewQA(): void {
+    this.selectedQA.push({ question: '', answer: '' });
+    // Initialize an empty array for suggestions for this new index
+    this.qaSuggestions[this.selectedQA.length - 1] = [];
+  }
+
+  /** Removes the Q&A entry at a specific index. */
+  removeInterviewQA(index: number): void {
+    const removedItem = this.selectedQA[index];
+    // If the removed item has a recommended question ID, free it up
+    if (removedItem?.id) {
+      this.usedQuestionIds.delete(removedItem.id);
+    }
+    // Remove from array
+    this.selectedQA.splice(index, 1);
+    // Remove from suggestions map
+    delete this.qaSuggestions[index];
+  }
+
+  /**
+   * Called when user types in the question input for Q&A item at `index`.
+   * We'll parse the input event, filter questionBank, and populate suggestions.
+   */
+  onQAQuestionInputChange(event: Event, index: number): void {
+    const inputEl = event.target as HTMLInputElement;
+    const value = inputEl.value || '';
+    const query = value.toLowerCase().trim();
+
+    if (!query) {
+      this.qaSuggestions[index] = [];
+      return;
+    }
+
+    // Filter out used recommended questions
+    this.qaSuggestions[index] = this.questionBank.filter(q =>
+      !this.usedQuestionIds.has(q.id) && q.text.toLowerCase().includes(query)
+    );
+  }
+
+  /**
+   * Called when user clicks on a recommended question from the suggestions
+   * for Q&A item at `index`.
+   */
+  selectRecommendedQA(suggestion: any, index: number): void {
+    // Mark this question as used
+    if (suggestion.id) {
+      this.usedQuestionIds.add(suggestion.id);
+    }
+    // Assign question text to the Q&A item
+    this.selectedQA[index].question = suggestion.text;
+    // Clear suggestions
+    this.qaSuggestions[index] = [];
+  }
+
+  /**
+   * Fetch recommended questions from the backend. If jobId is null, fetch all.
+   */
+  fetchRecommendedQuestions(jobId: number | null): void {
+    if (jobId === null) {
+      console.log("DEBUG: jobId is null -> fetching all recommended questions");
+      this.jobService.getAllRecommendedQuestions().subscribe({
+        next: (res) => {
+          console.log("DEBUG: All recommended questions:", res);
+          this.questionBank = res;
+        },
+        error: (err) => {
+          console.error("DEBUG: Error fetching all recommended questions:", err);
+        }
+      });
+    } else {
+      console.log("DEBUG: jobId =", jobId, "-> fetching recommended questions");
+      this.jobService.getRecommendedQuestions(jobId).subscribe({
+        next: (res) => {
+          console.log("DEBUG: Recommended questions from backend:", res);
+          this.questionBank = res;
+        },
+        error: (err) => {
+          console.error("DEBUG: Error fetching recommended questions:", err);
+        }
+      });
+    }
+  }
+
   private setCurrentUser(): void {
     this.authService.getCurrentUser().subscribe({
-      next: (user) => this.job.user_id = user.id,
+      next: (user) => (this.job.user_id = user.id),
       error: (err) => this.handleError(err)
     });
   }

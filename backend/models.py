@@ -38,7 +38,7 @@ class JobApplication(db.Model):
             'company': self.company,
             'role_category': self.role_category,
             'status': self.status,
-            'applied_date': self.applied_date.isoformat(),
+            'applied_date': self.applied_date.isoformat() if self.applied_date else None,
             'general_notes': self.general_notes,
             'created_at': self.created_at.isoformat(),
         }
@@ -47,7 +47,7 @@ class JobApplication(db.Model):
 class FeedbackCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    type = db.Column(db.Enum('positive', 'negative', 'neutral'), nullable=False)
+    type = db.Column(db.Enum('positive','negative','neutral'), nullable=False)
 
     def serialize(self):
         return {
@@ -76,5 +76,46 @@ class Feedback(db.Model):
             "detailed_feedback": self.detailed_feedback,
             "key_improvements": self.key_improvements,
             "key_strengths": self.key_strengths,
+            "created_at": self.created_at.isoformat()
+        }
+
+
+class QuestionBank(db.Model):
+    """
+    Stores recommended interview questions.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    question_text = db.Column(db.String(255), unique=True, nullable=False)
+    category = db.Column(db.String(100), nullable=True)  # Optional, e.g., Technical, Behavioral, etc.
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "question_text": self.question_text,
+            "category": self.category
+        }
+
+
+class JobInterviewQuestion(db.Model):
+    """
+    Associates a job application with interview questions.
+    Can reference a recommended question from QuestionBank via `question_id`,
+    or store a custom question in `custom_question`.
+    The candidate's answer is stored in `answer`.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    job_id = db.Column(db.Integer, db.ForeignKey('job_application.id'), nullable=False)
+    question_id = db.Column(db.Integer, db.ForeignKey('question_bank.id'), nullable=True)
+    custom_question = db.Column(db.String(255), nullable=True)
+    answer = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "job_id": self.job_id,
+            "question_id": self.question_id,
+            "custom_question": self.custom_question,
+            "answer": self.answer,
             "created_at": self.created_at.isoformat()
         }

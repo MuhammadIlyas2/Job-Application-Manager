@@ -410,3 +410,146 @@ def update_job(job_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+@jobs_bp.route('/<int:job_id>/recommended-questions', methods=['GET'])
+@jwt_required()
+def get_recommended_questions(job_id):
+    """
+    Returns recommended interview questions from the question_bank.
+    If a query parameter unusedOnly=true (default) is provided, only questions not yet
+    added for the job (i.e. not present in job_interview_questions) are returned.
+    """
+    unused_only = request.args.get('unusedOnly', 'true').lower() == 'true'
+    try:
+        if unused_only:
+            query = text("""
+                SELECT qb.id, qb.question_text, qb.category
+                FROM question_bank qb
+                LEFT JOIN job_interview_questions jij
+                  ON qb.id = jij.question_id AND jij.job_id = :job_id
+                WHERE jij.id IS NULL
+            """)
+            params = {"job_id": job_id}
+        else:
+            query = text("""
+                SELECT qb.id, qb.question_text, qb.category
+                FROM question_bank qb
+            """)
+            params = {}
+        print("DEBUG: Fetching recommended questions with params:", params)
+        results = db.session.execute(query, params).fetchall()
+        print("DEBUG: Raw query results:", results)
+        questions = []
+        for row in results:
+            questions.append({
+                "id": row[0],
+                "text": row[1],
+                "category": row[2]
+            })
+        print("DEBUG: Final recommended questions to return:", questions)
+        return jsonify(questions), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ ERROR in get_recommended_questions: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
+@jobs_bp.route('/recommended-questions', methods=['GET'])
+@jwt_required()
+def get_all_recommended_questions():
+    """
+    Returns all recommended interview questions from the question_bank.
+    """
+    try:
+        query = text("""
+            SELECT qb.id, qb.question_text, qb.category
+            FROM question_bank qb
+        """)
+        results = db.session.execute(query).fetchall()
+        questions = []
+        for row in results:
+            questions.append({
+                "id": row[0],
+                "text": row[1],
+                "category": row[2]
+            })
+        print("DEBUG: Returning all recommended questions:", questions)
+        return jsonify(questions), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ ERROR in get_all_recommended_questions: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@jobs_bp.route('/<int:job_id>/interview-questions', methods=['POST'])
+@jwt_required()
+def save_interview_questions(job_id):
+    """
+    Save interview questions & answers for a job.
+    This endpoint expects a JSON array of items.
+    Each item should contain:
+      - question_id (if recommended) [optional]
+      - custom_question (if custom) [optional]
+      - answer
+    For simplicity, we delete existing entries for the job and insert new ones.
+    """
+    try:
+        data = request.get_json()  # expect a list of Q&A objects
+        if not isinstance(data, list):
+            return jsonify({"message": "Expected a list of interview questions."}), 400
+
+        # Delete existing interview questions for the job
+        delete_query = text("DELETE FROM job_interview_questions WHERE job_id = :job_id")
+        db.session.execute(delete_query, {"job_id": job_id})
+        
+        # Insert new interview questions
+        insert_query = text("""
+            INSERT INTO job_interview_questions (job_id, question_id, custom_question, answer)
+            VALUES (:job_id, :question_id, :custom_question, :answer)
+        """)
+        
+        for item in data:
+            # Use recommended question if question_id is provided; otherwise, use custom_question.
+            question_id = item.get("question_id")
+            custom_question = item.get("custom_question") if not question_id else None
+            answer = item.get("answer", "")
+            db.session.execute(insert_query, {
+                "job_id": job_id,
+                "question_id": question_id,
+                "custom_question": custom_question,
+                "answer": answer
+            })
+        
+        db.session.commit()
+        return jsonify({"message": "Interview questions saved successfully."}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ ERROR in save_interview_questions: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@jobs_bp.route('/<int:job_id>/interview-questions', methods=['GET'])
+@jwt_required()
+def get_interview_questions(job_id):
+    """
+    Retrieve all interview questions for a given job.
+    """
+    try:
+        query = text("""
+            SELECT id, question_id, custom_question, answer
+            FROM job_interview_questions
+            WHERE job_id = :job_id
+        """)
+        results = db.session.execute(query, {"job_id": job_id}).fetchall()
+        questions = []
+        for row in results:
+            questions.append({
+                "id": row[0],
+                "question_id": row[1],
+                "custom_question": row[2],
+                "question": row[1] and None or row[2],  # you can adjust logic to combine recommended/custom
+                "answer": row[3]
+            })
+        return jsonify(questions), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ ERROR in get_interview_questions: {str(e)}")
+        return jsonify({"error": str(e)}), 500

@@ -23,7 +23,6 @@
           placeholder="e.g., Software Engineer"
         />
       </div>
-
       <div class="form-group">
         <label class="required">Company</label>
         <input
@@ -47,7 +46,6 @@
           </option>
         </select>
       </div>
-
       <div class="form-group">
         <label class="required">Status</label>
         <select
@@ -73,7 +71,6 @@
           name="applied_date"
         />
       </div>
-
       <div class="form-group">
         <label>Feedback Summary (Max 50 chars)</label>
         <input
@@ -105,7 +102,7 @@
       ></textarea>
     </div>
 
-    <!-- Detailed Feedback Section (only if status is rejected/accepted/offer) -->
+    <!-- Detailed Feedback Section (for rejected/accepted/offer) -->
     <div
       *ngIf="
         job.status === 'rejected' ||
@@ -121,11 +118,14 @@
         <label>Feedback Category</label>
         <select
           [(ngModel)]="job.feedback.category_id"
-          name="feedback.category_id"
+          name="feedbackCategory"
           (change)="onStatusChange()"
         >
           <option [ngValue]="null">Select Category</option>
-          <option *ngFor="let cat of filteredCategories" [value]="cat.id">
+          <option
+            *ngFor="let cat of filteredCategories"
+            [value]="cat.id"
+          >
             {{ cat.name }}
           </option>
         </select>
@@ -142,7 +142,7 @@
         </label>
         <textarea
           [(ngModel)]="job.feedback.detailed_feedback"
-          name="detailed_feedback"
+          name="detailedFeedback"
           rows="3"
           placeholder="Detailed notes"
         ></textarea>
@@ -159,7 +159,7 @@
         </label>
         <textarea
           [(ngModel)]="job.feedback.key_improvements"
-          name="key_improvements"
+          name="keyImprovements"
           rows="3"
         ></textarea>
       </div>
@@ -178,9 +178,100 @@
         </label>
         <textarea
           [(ngModel)]="job.feedback.key_strengths"
-          name="key_strengths"
+          name="keyStrengths"
           rows="3"
         ></textarea>
+      </div>
+    </div>
+
+    <!-- Button to toggle Interview Q&A section (only if interview/rejected/accepted/offer) -->
+    <div
+      *ngIf="
+        job.status === 'rejected' ||
+        job.status === 'accepted' ||
+        job.status === 'offer' ||
+        job.status === 'interview'
+      "
+    >
+      <div class="form-group">
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="toggleInterviewQA()"
+        >
+          {{ showInterviewQASection ? 'Hide Interview Q&A' : 'Add Interview Q&A' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Interview Q&A Section (collapsible) -->
+    <div
+      *ngIf="showInterviewQASection"
+      class="interview-qa-section"
+    >
+      <h3>Interview Q&A</h3>
+
+      <!-- List of added Q&A items -->
+      <div class="selected-qa" *ngIf="selectedQA.length > 0">
+        <div
+          *ngFor="let qa of selectedQA; let i = index"
+          class="qa-entry"
+        >
+          <p><strong>Q{{ i + 1 }}:</strong></p>
+
+          <!-- The question input wrapper (positions the suggestions) -->
+          <div class="question-input-wrapper">
+            <input
+              type="text"
+              [(ngModel)]="qa.question"
+              [ngModelOptions]="{ standalone: true }"
+              name="question{{ i }}"
+              placeholder="Interview question"
+              (input)="onQAQuestionInputChange($event, i)"
+            />
+            <!-- Autocomplete suggestions anchored below the input -->
+            <ul
+              class="suggestions"
+              *ngIf="qaSuggestions[i] && qaSuggestions[i].length > 0"
+            >
+              <li
+                class="suggestion-item"
+                *ngFor="let suggestion of qaSuggestions[i]"
+                (click)="selectRecommendedQA(suggestion, i)"
+              >
+                {{ suggestion.text }}
+              </li>
+            </ul>
+          </div>
+
+          <p><strong>Your Answer:</strong></p>
+          <textarea
+            [(ngModel)]="qa.answer"
+            [ngModelOptions]="{ standalone: true }"
+            name="answer{{ i }}"
+            placeholder="Your answer..."
+          ></textarea>
+
+          <!-- Remove button for each Q&A entry -->
+          <button
+            type="button"
+            class="danger-button"
+            (click)="removeInterviewQA(i)"
+          >
+            Remove Q&A
+          </button>
+        </div>
+      </div>
+
+      <!-- Button to add a new blank Q&A -->
+      <div class="form-group">
+        <button
+          type="button"
+          class="primary-button"
+          (click)="addInterviewQA()"
+        >
+          Add Another Interview Q&A
+        </button>
       </div>
     </div>
 
@@ -189,7 +280,6 @@
       <button type="submit" class="primary-button">
         {{ isEditMode ? 'Update Application' : 'Create Application' }}
       </button>
-
       <button
         type="button"
         (click)="router.navigate(['/jobs'])"
@@ -201,7 +291,14 @@
   </form>
 
   <!-- Error message if something goes wrong -->
-  <div *ngIf="errorMessage" class="error-message">
+  <div
+    *ngIf="errorMessage"
+    class="error-message"
+  >
     {{ errorMessage }}
   </div>
 </div>
+
+<ng-template #errorTemplate>
+  <div class="error-message">{{ errorMessage }}</div>
+</ng-template>

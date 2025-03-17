@@ -62,4 +62,28 @@ export class JobService {
     const headers = this.getAuthHeaders();
     return this.http.get<any>(`${this.baseUrl}/feedback-categories`, { headers });
   }
+
+  getRecommendedQuestions(jobId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    console.log("DEBUG: Calling GET recommended questions for jobId:", jobId);
+    return this.http.get<any>(`${this.baseUrl}/${jobId}/recommended-questions`, { headers });
+  }
+
+  getAllRecommendedQuestions(): Observable<any> {
+    const headers = this.getAuthHeaders();
+    console.log("DEBUG: Calling GET all recommended questions");
+    return this.http.get<any>(`${this.baseUrl}/recommended-questions`, { headers });
+  }
+
+  getInterviewQAs(jobId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${this.baseUrl}/${jobId}/interview-questions`, { headers });
+  }
+  
+  saveInterviewQAs(jobId: number, interviewQAs: any[]): Observable<any> {
+    const headers = this.getAuthHeaders();
+    // Send the interview QAs array in the request body
+    return this.http.post<any>(`${this.baseUrl}/${jobId}/interview-questions`, interviewQAs, { headers });
+  }
+  
 }
