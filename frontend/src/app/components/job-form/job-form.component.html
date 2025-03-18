@@ -103,158 +103,59 @@
     </div>
 
     <!-- Detailed Feedback Section (for rejected/accepted/offer) -->
-    <div
-      *ngIf="
-        job.status === 'rejected' ||
-        job.status === 'accepted' ||
-        job.status === 'offer'
-      "
-      class="feedback-section"
-    >
+    <div *ngIf="job.status === 'rejected' || job.status === 'accepted' || job.status === 'offer'" class="feedback-section">
       <h3>Detailed Feedback</h3>
-
+    
       <!-- Feedback Category -->
       <div class="form-group" *ngIf="filteredCategories.length > 0">
         <label>Feedback Category</label>
-        <select
-          [(ngModel)]="job.feedback.category_id"
-          name="feedbackCategory"
-          (change)="onStatusChange()"
-        >
+        <select [(ngModel)]="job.feedback.category_id" name="feedbackCategory" (change)="onStatusChange()">
           <option [ngValue]="null">Select Category</option>
-          <option *ngFor="let cat of filteredCategories" [value]="cat.id">
-            {{ cat.name }}
-          </option>
+          <option *ngFor="let cat of filteredCategories" [value]="cat.id">{{ cat.name }}</option>
         </select>
       </div>
-
+    
       <!-- Detailed Feedback Notes -->
       <div class="form-group">
         <label>
           Detailed Feedback Notes
-          <i
-            class="fas fa-question-circle info-icon"
-            title="Provide additional details about the feedback."
-          ></i>
+          <i class="fas fa-question-circle info-icon" title="Provide additional details about the feedback."></i>
         </label>
-        <textarea
-          [(ngModel)]="job.feedback.detailed_feedback"
-          name="detailedFeedback"
-          rows="3"
-          placeholder="Detailed notes"
-        ></textarea>
+        <textarea [(ngModel)]="job.feedback.detailed_feedback" name="detailedFeedback" rows="3" placeholder="Detailed notes"></textarea>
       </div>
-
+    
       <!-- Key Improvements (Chain-based) (Only for Rejected) -->
       <div class="form-group" *ngIf="job.status === 'rejected'">
         <label>Key Improvements</label>
-        <!-- Container for priority + chain -->
         <div class="strengths-improvements-container">
-          <!-- Priority improvement input -->
           <div class="priority-strength-improvement">
-            <input
-              type="text"
-              [(ngModel)]="job.feedback.priority_improvement"
-              name="priorityImprovement"
-              placeholder="Priority improvement"
-            />
+            <input type="text" [(ngModel)]="job.feedback.priority_improvement" name="priorityImprovement" placeholder="Priority improvement" />
           </div>
-          <!-- Chain icon to add the first additional improvement -->
-          <span
-            class="chain-add-icon"
-            (click)="addAdditionalImprovement()"
-            title="Add additional improvement"
-          >
-            +
-          </span>
+          <span class="chain-add-icon" (click)="addAdditionalImprovement()" title="Add additional improvement">+</span>
         </div>
-
-        <!-- Additional improvements chain -->
         <div class="chain-strengths-improvements" *ngIf="job.feedback.additional_improvements.length > 0">
-          <div
-            class="chain-strength-improvement-row"
-            *ngFor="let improvement of job.feedback.additional_improvements; let i = index"
-          >
-            <input
-              type="text"
-              [(ngModel)]="job.feedback.additional_improvements[i]"
-              name="additionalImprovement{{ i }}"
-              placeholder="Additional improvement"
-            />
-            <span
-              class="chain-add-icon"
-              (click)="addAdditionalImprovement()"
-              title="Add another improvement"
-            >
-              +
-            </span>
-            <button
-              type="button"
-              class="chain-remove-icon"
-              (click)="removeAdditionalImprovement(i)"
-              title="Remove improvement"
-            >
-              ×
-            </button>
+          <div class="chain-strength-improvement-row" *ngFor="let improvement of job.feedback.additional_improvements; let i = index; trackBy: trackByIndex">
+            <input type="text" [(ngModel)]="job.feedback.additional_improvements[i]" name="additionalImprovement{{ i }}" placeholder="Additional improvement" />
+            <span class="chain-add-icon" (click)="addAdditionalImprovement()" title="Add another improvement">+</span>
+            <button type="button" class="chain-remove-icon" (click)="removeAdditionalImprovement(i)" title="Remove improvement">×</button>
           </div>
         </div>
       </div>
-
+    
       <!-- Key Strengths (Chain-based) (Only for Accepted/Offer) -->
-      <div
-        class="form-group"
-        *ngIf="job.status === 'accepted' || job.status === 'offer'"
-      >
+      <div class="form-group" *ngIf="job.status === 'accepted' || job.status === 'offer'">
         <label>Key Strengths</label>
-
-        <!-- Priority + Additional as a chain -->
         <div class="strengths-improvements-container">
-          <!-- Priority strength input -->
           <div class="priority-strength-improvement">
-            <input
-              type="text"
-              [(ngModel)]="job.feedback.priority_strength"
-              name="priorityStrength"
-              placeholder="Priority strength"
-            />
+            <input type="text" [(ngModel)]="job.feedback.priority_strength" name="priorityStrength" placeholder="Priority strength" />
           </div>
-          <!-- The chain icon next to priority to add the first additional strength -->
-          <span
-            class="chain-add-icon"
-            (click)="addAdditionalStrength()"
-            title="Add additional strength"
-          >
-            +
-          </span>
+          <span class="chain-add-icon" (click)="addAdditionalStrength()" title="Add additional strength">+</span>
         </div>
-
-        <!-- Additional strengths chain -->
         <div class="chain-strengths-improvements" *ngIf="job.feedback.additional_strengths.length > 0">
-          <div
-            class="chain-strength-improvement-row"
-            *ngFor="let strength of job.feedback.additional_strengths; let i = index"
-          >
-            <input
-              type="text"
-              [(ngModel)]="job.feedback.additional_strengths[i]"
-              name="additionalStrength{{ i }}"
-              placeholder="Additional strength"
-            />
-            <span
-              class="chain-add-icon"
-              (click)="addAdditionalStrength()"
-              title="Add another strength"
-            >
-              +
-            </span>
-            <button
-              type="button"
-              class="chain-remove-icon"
-              (click)="removeAdditionalStrength(i)"
-              title="Remove strength"
-            >
-              ×
-            </button>
+          <div class="chain-strength-improvement-row" *ngFor="let strength of job.feedback.additional_strengths; let i = index; trackBy: trackByIndex">
+            <input type="text" [(ngModel)]="job.feedback.additional_strengths[i]" name="additionalStrength{{ i }}" placeholder="Additional strength" />
+            <span class="chain-add-icon" (click)="addAdditionalStrength()" title="Add another strength">+</span>
+            <button type="button" class="chain-remove-icon" (click)="removeAdditionalStrength(i)" title="Remove strength">×</button>
           </div>
         </div>
       </div>

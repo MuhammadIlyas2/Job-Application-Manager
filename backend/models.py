@@ -5,7 +5,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    fullname = db.Column(db.String(120), nullable=False)  
+    fullname = db.Column(db.String(120), nullable=False)
     password_hash = db.Column(db.String(512), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -45,9 +45,10 @@ class JobApplication(db.Model):
 
 
 class FeedbackCategory(db.Model):
+    __tablename__ = 'feedback_category'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    type = db.Column(db.Enum('positive','negative','neutral'), nullable=False)
+    type = db.Column(db.Enum('positive', 'negative', 'neutral'), nullable=False)
 
     def serialize(self):
         return {
@@ -58,13 +59,12 @@ class FeedbackCategory(db.Model):
 
 
 class Feedback(db.Model):
+    __tablename__ = 'feedback'
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('job_application.id'), nullable=False, unique=True)
     category_id = db.Column(db.Integer, db.ForeignKey('feedback_category.id'), nullable=False)
     notes = db.Column(db.String(50), nullable=True)  # Short summary (max 50 chars)
     detailed_feedback = db.Column(db.Text, nullable=True)  # Full feedback
-    key_improvements = db.Column(db.Text, nullable=True)  # Key rejection reasons
-    key_strengths = db.Column(db.Text, nullable=True)  # Positive strengths
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def serialize(self):
@@ -74,8 +74,50 @@ class Feedback(db.Model):
             "category_id": self.category_id,
             "notes": self.notes,
             "detailed_feedback": self.detailed_feedback,
-            "key_improvements": self.key_improvements,
-            "key_strengths": self.key_strengths,
+            "created_at": self.created_at.isoformat()
+        }
+
+
+class FeedbackStrength(db.Model):
+    """
+    Stores key strengths for feedback.
+    Each row represents either a priority or an additional strength.
+    """
+    __tablename__ = 'feedback_strength'
+    id = db.Column(db.Integer, primary_key=True)
+    feedback_id = db.Column(db.Integer, db.ForeignKey('feedback.id', ondelete='CASCADE'), nullable=False)
+    is_priority = db.Column(db.Boolean, nullable=False, default=False)
+    strength = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "feedback_id": self.feedback_id,
+            "is_priority": self.is_priority,
+            "strength": self.strength,
+            "created_at": self.created_at.isoformat()
+        }
+
+
+class FeedbackImprovement(db.Model):
+    """
+    Stores key improvements for feedback.
+    Each row represents either a priority or an additional improvement.
+    """
+    __tablename__ = 'feedback_improvement'
+    id = db.Column(db.Integer, primary_key=True)
+    feedback_id = db.Column(db.Integer, db.ForeignKey('feedback.id', ondelete='CASCADE'), nullable=False)
+    is_priority = db.Column(db.Boolean, nullable=False, default=False)
+    improvement = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "feedback_id": self.feedback_id,
+            "is_priority": self.is_priority,
+            "improvement": self.improvement,
             "created_at": self.created_at.isoformat()
         }
 
@@ -84,9 +126,10 @@ class QuestionBank(db.Model):
     """
     Stores recommended interview questions.
     """
+    __tablename__ = 'question_bank'
     id = db.Column(db.Integer, primary_key=True)
     question_text = db.Column(db.String(255), unique=True, nullable=False)
-    category = db.Column(db.String(100), nullable=True)  # Optional, e.g., Technical, Behavioral, etc.
+    category = db.Column(db.String(100), nullable=True)  # Optional, e.g., Technical, Behavioral
 
     def serialize(self):
         return {
@@ -103,6 +146,7 @@ class JobInterviewQuestion(db.Model):
     or store a custom question in `custom_question`.
     The candidate's answer is stored in `answer`.
     """
+    __tablename__ = 'job_interview_question'
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('job_application.id'), nullable=False)
     question_id = db.Column(db.Integer, db.ForeignKey('question_bank.id'), nullable=True)

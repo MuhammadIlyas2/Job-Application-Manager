@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./job-form.component.css']
 })
 export class JobFormComponent {
+  // Main job properties
   job: any = {
     job_title: '',
     company: '',
@@ -21,7 +22,7 @@ export class JobFormComponent {
     general_notes: '',
     feedbackSummary: '',
     feedback: {
-      id: undefined,         // Track existing feedback if any
+      id: undefined,
       notes: '',
       category_id: null,
       detailed_feedback: '',
@@ -30,9 +31,7 @@ export class JobFormComponent {
       additional_improvements: [] as string[],
       // For strengths:
       priority_strength: '',
-      additional_strengths: [] as string[],
-      // If 'rejected', we use improvements. If 'accepted/offer', we use strengths.
-      key_improvements: '',  // (Optional leftover if you want a single string approach)
+      additional_strengths: [] as string[]
     }
   };
 
@@ -43,12 +42,18 @@ export class JobFormComponent {
   isEditMode = false;
   errorMessage = '';
 
-  // ========== Q&A properties ==========
+  // ================= Interview Q&A properties =================
   showInterviewQASection = false;
   selectedQA: { id?: number; question: string; answer: string }[] = [];
   qaSuggestions: { [index: number]: any[] } = {};
   questionBank: any[] = [];
   usedQuestionIds = new Set<number>();
+
+  // ================= Additional Strengths/Improvements properties =================
+  showAdditionalStrengthInput: boolean = false;
+  tempAdditionalStrength: string = '';
+  showAdditionalImprovementInput: boolean = false;
+  tempAdditionalImprovement: string = '';
 
   constructor(
     private jobService: JobService,
@@ -71,7 +76,6 @@ export class JobFormComponent {
       this.setCurrentUser();
       this.fetchRecommendedQuestions(null);
     }
-
     if (!this.job.status) {
       this.job.status = 'applied';
     }
@@ -100,7 +104,6 @@ export class JobFormComponent {
     } else {
       allowedTypes = ['positive', 'negative', 'neutral'];
     }
-
     this.filteredCategories = this.feedbackCategories.filter(cat => {
       const categoryType = (cat.type || '').trim().toLowerCase();
       return allowedTypes.includes(categoryType);
@@ -108,7 +111,9 @@ export class JobFormComponent {
   }
 
   onStatusChange(): void {
-    if (!this.job.status) this.job.status = 'applied';
+    if (!this.job.status) {
+      this.job.status = 'applied';
+    }
     this.filterCategories();
     if (this.job && this.job.id) {
       this.fetchRecommendedQuestions(this.job.id);
@@ -118,7 +123,6 @@ export class JobFormComponent {
   private loadJob(jobId: string): void {
     this.jobService.getJobById(+jobId).subscribe({
       next: (res) => {
-        // Merge loaded job data
         this.job = {
           ...res,
           role_category: res.role_category || '',
@@ -127,7 +131,6 @@ export class JobFormComponent {
             id: res.feedback ? res.feedback.id : undefined,
             notes: res.feedback?.notes || '',
             detailed_feedback: res.feedback?.detailed_feedback || '',
-            // If these fields exist on the backend, merge them, else fallback to empty
             priority_improvement: res.feedback?.priority_improvement || '',
             additional_improvements: res.feedback?.additional_improvements || [],
             priority_strength: res.feedback?.priority_strength || '',
@@ -135,12 +138,9 @@ export class JobFormComponent {
             category_id: res.feedback?.category_id || null
           }
         };
-
-        // Summaries
         this.job.feedbackSummary = typeof this.job.feedback.notes === 'string'
           ? this.job.feedback.notes
           : '';
-
         this.filterCategories();
       },
       error: (err) => {
@@ -151,75 +151,62 @@ export class JobFormComponent {
   }
 
   submitForm(): void {
-    // Combine improvements
-    const improvementsCombined =
-      (this.job.feedback.priority_improvement ? 'Priority: ' + this.job.feedback.priority_improvement + '\n' : '') +
-      (this.job.feedback.additional_improvements.length > 0
-        ? this.job.feedback.additional_improvements.map((imp: string) => 'Additional: ' + imp).join('\n')
-        : '');
-
-    // Combine strengths
-    const strengthsCombined =
-      (this.job.feedback.priority_strength ? 'Priority: ' + this.job.feedback.priority_strength + '\n' : '') +
-      (this.job.feedback.additional_strengths.length > 0
-        ? this.job.feedback.additional_strengths.map((str: string) => 'Additional: ' + str).join('\n')
-        : '');
-
-    // Build the final key_strengths or key_improvements field
-    // For "rejected" we might want improvements. For "accepted/offer" we might want strengths.
-    // But if you want to unify them into a single field like "key_strengths" on the backend, we can do:
-    let finalKeyStrengths = '';
-    let finalKeyImprovements = '';
-    if (this.job.status === 'rejected') {
-      // Put improvements into key_improvements
-      finalKeyImprovements = improvementsCombined;
-    } else if (this.job.status === 'accepted' || this.job.status === 'offer') {
-      // Put strengths into key_strengths
-      finalKeyStrengths = strengthsCombined;
-    }
-
+    // Prepare the basic job and feedback data
     const jobData = { ...this.job };
-
-    // Build feedback data
+  
+    // Build the feedback extras as separate objects instead of a combined string.
     const feedbackData = {
       notes: this.job.feedbackSummary.substring(0, 50),
       category_id: this.job.feedback.category_id,
       detailed_feedback: this.job.feedback.detailed_feedback,
-      key_improvements: finalKeyImprovements,
-      key_strengths: finalKeyStrengths
+      // Send strengths and improvements as separate objects:
+      strengths: {
+        priority: this.job.feedback.priority_strength,
+        additional: this.job.feedback.additional_strengths
+      },
+      improvements: {
+        priority: this.job.feedback.priority_improvement,
+        additional: this.job.feedback.additional_improvements
+      }
     };
-
-    // Remove the feedback object from jobData so we don't send it directly
+  
+    // Remove the nested feedback object from jobData so it isn’t sent twice.
     delete jobData.feedback;
-
-    // Create or update job
+  
     const operation = this.isEditMode
       ? this.jobService.updateJob(this.job.id, jobData)
       : this.jobService.createJob(jobData);
-
+  
     operation.subscribe({
       next: (res) => {
         const jobId = this.isEditMode ? this.job.id : res.job.id;
-        if (feedbackData.notes.trim() || feedbackData.category_id) {
+        // Save feedback extras (strengths & improvements) if there is any data.
+        if (
+          feedbackData.notes.trim() ||
+          feedbackData.category_id ||
+          (feedbackData.strengths.priority || feedbackData.strengths.additional.length > 0) ||
+          (feedbackData.improvements.priority || feedbackData.improvements.additional.length > 0)
+        ) {
           this.handleFeedback(jobId, feedbackData);
+        }
+        if (this.selectedQA.length > 0) {
+          this.saveInterviewQAs(jobId);
         } else {
-          // Possibly handle Q&A saving here, then navigate
           this.router.navigate(['/jobs']);
         }
       },
       error: (err) => this.handleError(err)
     });
   }
+  
 
   private handleFeedback(jobId: number, feedbackData: any): void {
     const operation = this.job.feedback?.id
       ? this.jobService.updateFeedback(jobId, feedbackData)
       : this.jobService.createFeedback(jobId, feedbackData);
-
     operation.subscribe({
       next: () => {
-        // Possibly handle Q&A saving here
-        this.router.navigate(['/jobs']);
+        // Feedback saved; continue with Interview Q&A if applicable.
       },
       error: (err) => {
         this.errorMessage += '\nFailed to save feedback details';
@@ -228,9 +215,27 @@ export class JobFormComponent {
     });
   }
 
-  // ====================== Additional Strengths & Improvements ======================
+  private saveInterviewQAs(jobId: number): void {
+    this.jobService.saveInterviewQAs(jobId, this.selectedQA).subscribe({
+      next: (res) => {
+        console.log("DEBUG: Interview Q&A saved successfully:", res);
+        this.router.navigate(['/jobs']);
+      },
+      error: (err) => {
+        this.errorMessage += '\nFailed to save interview questions';
+        console.error(err);
+      }
+    });
+  }
 
-  // For improvements:
+  // ================= Additional Strengths/Improvements Methods =================
+
+  addAdditionalStrength(): void {
+    this.job.feedback.additional_strengths.push('');
+  }
+  removeAdditionalStrength(index: number): void {
+    this.job.feedback.additional_strengths.splice(index, 1);
+  }
   addAdditionalImprovement(): void {
     this.job.feedback.additional_improvements.push('');
   }
@@ -238,15 +243,7 @@ export class JobFormComponent {
     this.job.feedback.additional_improvements.splice(index, 1);
   }
 
-  // For strengths:
-  addAdditionalStrength(): void {
-    this.job.feedback.additional_strengths.push('');
-  }
-  removeAdditionalStrength(index: number): void {
-    this.job.feedback.additional_strengths.splice(index, 1);
-  }
-
-  // ====================== Interview Q&A Methods ======================
+  // ================= Interview Q&A Methods =================
 
   toggleInterviewQA(): void {
     if (!this.showInterviewQASection && this.selectedQA.length === 0) {
@@ -254,12 +251,10 @@ export class JobFormComponent {
     }
     this.showInterviewQASection = !this.showInterviewQASection;
   }
-
   addInterviewQA(): void {
     this.selectedQA.push({ question: '', answer: '' });
     this.qaSuggestions[this.selectedQA.length - 1] = [];
   }
-
   removeInterviewQA(index: number): void {
     const removed = this.selectedQA[index];
     if (removed && removed.id) {
@@ -268,7 +263,6 @@ export class JobFormComponent {
     this.selectedQA.splice(index, 1);
     delete this.qaSuggestions[index];
   }
-
   onQAQuestionInputChange(event: Event, index: number): void {
     const input = event.target as HTMLInputElement;
     const value = input.value || '';
@@ -281,7 +275,6 @@ export class JobFormComponent {
       !this.usedQuestionIds.has(q.id) && q.text.toLowerCase().includes(query)
     );
   }
-
   selectRecommendedQA(suggestion: any, index: number): void {
     if (suggestion.id) {
       this.usedQuestionIds.add(suggestion.id);
@@ -289,7 +282,6 @@ export class JobFormComponent {
     this.selectedQA[index].question = suggestion.text;
     this.qaSuggestions[index] = [];
   }
-
   fetchRecommendedQuestions(jobId: number | null): void {
     if (jobId === null) {
       this.jobService.getAllRecommendedQuestions().subscribe({
@@ -312,7 +304,7 @@ export class JobFormComponent {
     }
   }
 
-  // ====================== Utility Methods ======================
+  // ================= Utility Methods =================
 
   private setCurrentUser(): void {
     this.authService.getCurrentUser().subscribe({
@@ -320,9 +312,13 @@ export class JobFormComponent {
       error: (err) => this.handleError(err)
     });
   }
-
   private handleError(err: any): void {
     this.errorMessage = err.error?.message || 'Operation failed. Please try again.';
     console.error(err);
+  }
+
+  // ================= TrackBy Function for ngFor =================
+  trackByIndex(index: number, item: any): number {
+    return index;
   }
 }
