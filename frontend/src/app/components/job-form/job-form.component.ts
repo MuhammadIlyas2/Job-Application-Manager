@@ -66,12 +66,34 @@ export class JobFormComponent {
   ngOnInit(): void {
     this.roles = this.roleService.getRoles();
     this.loadFeedbackCategories();
-
+  
     const jobId = this.route.snapshot.paramMap.get('id');
     if (jobId) {
       this.isEditMode = true;
       this.loadJob(jobId);
       this.fetchRecommendedQuestions(+jobId);
+      // Load existing Interview Q&A (for the job’s feedback)
+      this.jobService.getInterviewQAs(+jobId).subscribe({
+        next: (res) => {
+          this.selectedQA = res;
+        },
+        error: (err) => console.error('Failed to load interview questions', err)
+      });
+      // Also load strengths & improvements extras if needed.
+      this.jobService.getFeedbackStrengths(+jobId).subscribe({
+        next: (res) => {
+          this.job.feedback.priority_strength = res.priority || '';
+          this.job.feedback.additional_strengths = res.additional || [];
+        },
+        error: (err) => console.error('Failed to load feedback strengths', err)
+      });
+      this.jobService.getFeedbackImprovements(+jobId).subscribe({
+        next: (res) => {
+          this.job.feedback.priority_improvement = res.priority || '';
+          this.job.feedback.additional_improvements = res.additional || [];
+        },
+        error: (err) => console.error('Failed to load feedback improvements', err)
+      });
     } else {
       this.setCurrentUser();
       this.fetchRecommendedQuestions(null);
@@ -80,6 +102,7 @@ export class JobFormComponent {
       this.job.status = 'applied';
     }
   }
+  
 
   private loadFeedbackCategories(): void {
     this.jobService.getFeedbackCategories().subscribe({

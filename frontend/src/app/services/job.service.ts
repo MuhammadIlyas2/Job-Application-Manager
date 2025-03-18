@@ -85,5 +85,15 @@ export class JobService {
     // Send the interview QAs array in the request body
     return this.http.post<any>(`${this.baseUrl}/${jobId}/interview-questions`, interviewQAs, { headers });
   }
+
+  getFeedbackStrengths(jobId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${this.baseUrl}/${jobId}/feedback/strengths`, { headers });
+  }
+  
+  getFeedbackImprovements(jobId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${this.baseUrl}/${jobId}/feedback/improvements`, { headers });
+  }
   
 }

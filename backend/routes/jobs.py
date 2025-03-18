@@ -517,3 +517,54 @@ def get_interview_questions(job_id):
         db.session.rollback()
         print(f"❌ ERROR in get_interview_questions: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+@jobs_bp.route('/<int:job_id>/feedback/strengths', methods=['GET'])
+@jwt_required()
+def get_feedback_strengths(job_id):
+    try:
+        # Get the feedback record for this job
+        feedback = db.session.execute(
+            text("SELECT id FROM feedback WHERE job_id = :job_id"),
+            {"job_id": job_id}
+        ).fetchone()
+        if not feedback:
+            return jsonify({"message": "Feedback not found"}), 404
+        feedback_id = feedback[0]
+        query = text("SELECT is_priority, strength FROM feedback_strength WHERE feedback_id = :feedback_id")
+        results = db.session.execute(query, {"feedback_id": feedback_id}).fetchall()
+        priority = None
+        additional = []
+        for row in results:
+            if row[0]:
+                priority = row[1]
+            else:
+                additional.append(row[1])
+        return jsonify({"priority": priority, "additional": additional}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@jobs_bp.route('/<int:job_id>/feedback/improvements', methods=['GET'])
+@jwt_required()
+def get_feedback_improvements(job_id):
+    try:
+        feedback = db.session.execute(
+            text("SELECT id FROM feedback WHERE job_id = :job_id"),
+            {"job_id": job_id}
+        ).fetchone()
+        if not feedback:
+            return jsonify({"message": "Feedback not found"}), 404
+        feedback_id = feedback[0]
+        query = text("SELECT is_priority, improvement FROM feedback_improvement WHERE feedback_id = :feedback_id")
+        results = db.session.execute(query, {"feedback_id": feedback_id}).fetchall()
+        priority = None
+        additional = []
+        for row in results:
+            if row[0]:
+                priority = row[1]
+            else:
+                additional.append(row[1])
+        return jsonify({"priority": priority, "additional": additional}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
