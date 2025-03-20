@@ -1,39 +1,41 @@
-/* The wrapper fills the entire viewport */
-/* 1) Remove default margin/padding from html & body */
+/* ================== RESET & BASE LAYOUT ================== */
+
+/* Remove default margin/padding from html & body */
 html, body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    height: 100%; /* Let the wrapper/card fill the screen height if desired */
   }
   
-  /* 2) The wrapper is a flex container filling the viewport height */
+  /* The wrapper can grow in height and allow scrolling if content is tall */
   .job-details-wrapper {
-    height: 95vh; /* use full viewport height */
-    display: flex; /* so the card can flex inside */
-    align-items: center;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
     justify-content: center;
     background: #F3F4F6;
-    margin: 0;
+    overflow: auto; /* ensures we can scroll if content is tall */
+    width: 100%;
   }
   
-  /* 3) The card now flexes to fill vertical space */
+  /* The card fills available space, with a max width for readability */
   .card {
     display: flex;
     flex-direction: column;
-    flex: 1;
-    min-height: 95%;            /* let the card fill leftover vertical space */
-    max-width: 100vw;  /* still keep a max width if you like */
+    width: 95%;
+    max-width: 1400px;
+    margin: 20px 0;
     border-radius: 8px;
     background: #fff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    overflow: hidden;    /* if you want to clip overflowing content */
   }
   
-  /* 4) Let the card-body flex so it pushes footer down */
+  /* Let the card-body scroll if content is tall */
   .card-body {
-    flex: 1; /* grows to fill vertical space */
+    flex: 1;
     padding: 20px;
-    overflow: auto; /* if content is tall, scroll inside body */
+    overflow-y: auto;
   }
   
   /* Header styling */
@@ -50,62 +52,6 @@ html, body {
   .card-header .subtitle {
     font-size: 0.875rem;
     opacity: 0.8;
-  }
-  
-  /* Grid layout for job details */
-  .details-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-  }
-  .detail-item {
-    display: flex;
-    flex-direction: column;
-  }
-  .detail-item.full {
-    grid-column: 1 / -1;
-  }
-  .detail-item .label {
-    font-weight: 600;
-    color: #444;
-    margin-bottom: 4px;
-  }
-  .detail-item .value {
-    color: #1F2937;
-  }
-  
-  /* Feedback section */
-  .feedback-section {
-    margin-top: 20px;
-    border-top: 1px solid #E5E7EB;
-    padding-top: 20px;
-  }
-  .feedback-section h3 {
-    margin-top: 0;
-    font-size: 1.375rem;
-    color: #6C63FF;
-    margin-bottom: 15px;
-  }
-  .feedback-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
-  }
-  .feedback-item {
-    display: flex;
-    flex-direction: column;
-  }
-  .feedback-item.full {
-    grid-column: 1 / -1;
-  }
-  .feedback-item .label {
-    font-weight: 600;
-    color: #444;
-    margin-bottom: 4px;
-  }
-  .feedback-item .value {
-    color: #1F2937;
   }
   
   /* Card footer */
@@ -141,14 +87,196 @@ html, body {
     font-size: 1rem;
   }
   
-  /* Responsive adjustments */
+  /* ================== FIRST ROW: Summary & Timeline ================== */
+  
+  /* Container for the summary & timeline sections */
+  .summary-timeline-row {
+    display: flex;
+    flex-wrap: wrap; /* allow wrap on big screens if needed */
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  /* Left side: summary info (role category, dates, notes, etc.) */
+  .summary-info {
+    flex: 1 1 50%;
+    min-width: 280px;
+  }
+  .info-item {
+    margin-bottom: 10px;
+  }
+  .info-item label {
+    font-weight: 600;
+    color: #444;
+    margin-right: 5px;
+  }
+  .info-item span {
+    color: #1F2937;
+  }
+  
+  /* Right side: timeline */
+  .timeline-section {
+    flex: 1 1 50%;
+    min-width: 280px;
+    text-align: center;
+  }
+  .timeline-section h3 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #333;
+  }
+  
+  /* TIMELINE specifics */
+  .status-timeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap; /* if you truly never want wrapping, remove this */
+  }
+  .timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80px;
+    position: relative;
+  }
+  .timeline-step .circle {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #ccc; /* default border if not active */
+    border-radius: 50%;
+    background: #fff;
+    margin-bottom: 0.5rem;
+    transition: 0.3s;
+  }
+  .timeline-step span {
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  .timeline-step .date {
+    font-size: 0.75rem;
+    color: #777;
+    margin-top: 0.25rem;
+  }
+  .timeline-line {
+    flex: 1 1 auto;
+    height: 3px;
+    background: #ccc;
+    margin: 0 0.25rem;
+  }
+  
+  /* Color-coding for each status */
+  .timeline-step[data-step="applied"].active .circle {
+    border-color: lightblue;
+    background-color: lightblue;
+  }
+  .timeline-step[data-step="interview"].active .circle {
+    border-color: orange;
+    background-color: orange;
+  }
+  .timeline-step[data-step="offer"].active .circle {
+    border-color: lightgreen;
+    background-color: lightgreen;
+  }
+  .timeline-step[data-step="accepted"].active .circle {
+    border-color: green;
+    background-color: green;
+  }
+  .timeline-step[data-step="rejected"].active .circle {
+    border-color: red;
+    background-color: red;
+  }
+  
+  /* ================== SECOND ROW: Basic Feedback & Q&A ================== */
+  .feedback-qa-row {
+    display: flex;
+    flex-direction: row; /* ensures left-to-right */
+    flex-wrap: nowrap;   /* disables wrapping so Interview Q&A remains on the right */
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  /* Basic feedback (left) */
+  .basic-feedback-col {
+    flex: 1 1 50%;
+    min-width: 280px;
+    padding: 10px;
+    border-right: 1px solid #E5E7EB; /* optional divider line */
+  }
+  .basic-feedback-col h3 {
+    font-size: 1.4rem;
+    color: #6C63FF;
+    margin-top: 0;
+  }
+  .feedback-grid {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  .feedback-item .label {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .feedback-item .value {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+  
+  /* Interview Q&A (right) */
+  .interview-qa-col {
+    flex: 1 1 50%;
+    min-width: 280px;
+    padding: 10px;
+  }
+  .interview-qa-col h3 {
+    font-size: 1.4rem;
+    color: #6C63FF;
+    margin-top: 0;
+  }
+  .qa-entry {
+    margin-bottom: 1rem;
+    font-size: 1.05rem; /* bigger text to show importance */
+  }
+  
+  /* ================== THIRD ROW: Key Points (Improvements / Strengths) ================== */
+  .key-points-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  /* Shared box styling for improvements or strengths */
+  .key-improvements,
+  .key-strengths {
+    max-width: 700px;
+    width: 90%;
+    background: #fafafa;
+    border: 1px dashed #ddd;
+    padding: 20px;
+    border-radius: 6px;
+  }
+  .key-improvements h3,
+  .key-strengths h3 {
+    font-size: 1.4rem;
+    margin-top: 0;
+    color: #6C63FF;
+  }
+  .key-improvements .value,
+  .key-strengths .value {
+    font-size: 1rem;
+    color: #333;
+    line-height: 1.5;
+  }
+  
   @media (max-width: 600px) {
     .card {
-      width: 100%;
-      padding: 10px;
-    }
-    .card-body, .card-header, .card-footer {
-      padding: 15px;
+      /* We'll keep the card's margin or set to 0 if you prefer. */
+      margin: 0;
+      border-radius: 0;
     }
   }
   

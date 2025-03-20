@@ -1,77 +1,170 @@
 <div class="job-details-wrapper" *ngIf="job; else errorTemplate">
   <div class="card">
+    <!-- Header -->
     <header class="card-header">
-      <h2>Job Application Details</h2>
-      <p class="subtitle">{{ job.job_title }} at {{ job.company }}</p>
+      <h2>Job Summary</h2>
+      <p class="subtitle">{{ job.company }} - {{ job.job_title }}</p>
     </header>
 
+    <!-- Card Body -->
     <div class="card-body">
-      <div class="details-grid">
-        <div class="detail-item">
-          <span class="label">Job Title:</span>
-          <span class="value">{{ job.job_title }}</span>
+      <!-- Row 1: Summary Info & Timeline -->
+      <div class="summary-timeline-row">
+        <!-- Left: Basic Info -->
+        <div class="summary-info">
+          <div class="info-item">
+            <label>Role Category:</label>
+            <span>{{ job.role_category || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Applied Date:</label>
+            <span>{{ job.applied_date || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Created At:</label>
+            <span>{{ job.created_at || 'N/A' }}</span>
+          </div>
+          <div class="info-item">
+            <label>General Notes:</label>
+            <span>{{ job.general_notes || 'No notes available' }}</span>
+          </div>
         </div>
-        <div class="detail-item">
-          <span class="label">Company:</span>
-          <span class="value">{{ job.company }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Role Category:</span>
-          <span class="value">{{ job.role_category || 'N/A' }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Status:</span>
-          <span class="value">{{ job.status }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Applied Date:</span>
-          <span class="value">{{ job.applied_date }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Created At:</span>
-          <span class="value">{{ job.created_at }}</span>
-        </div>
-        <div class="detail-item full">
-          <span class="label">General Notes:</span>
-          <span class="value">{{ job.general_notes || 'No notes available' }}</span>
-        </div>
-      </div>
 
-      <!-- Feedback Section -->
-      <div class="feedback-section" *ngIf="job.feedback">
-        <h3>Feedback</h3>
-        <div class="feedback-grid">
-          <div class="feedback-item">
-            <span class="label">Category:</span>
-            <span class="value">
-              {{ job.feedback.category_name || 'No category' }} ({{ job.feedback.category_type || 'N/A' }})
-            </span>
-          </div>
-          <div class="feedback-item">
-            <span class="label">Summary:</span>
-            <span class="value">{{ job.feedback.notes || 'No feedback summary' }}</span>
-          </div>
-          <div class="feedback-item full" *ngIf="job.feedback.detailed_feedback">
-            <span class="label">Detailed Feedback:</span>
-            <span class="value">{{ job.feedback.detailed_feedback }}</span>
-          </div>
-          <div class="feedback-item full" *ngIf="job.status === 'rejected' && job.feedback.key_improvements">
-            <span class="label">Key Improvements:</span>
-            <span class="value">{{ job.feedback.key_improvements }}</span>
-          </div>
-          <div class="feedback-item full" *ngIf="(job.status === 'accepted' || job.status === 'offer') && job.feedback.key_strengths">
-            <span class="label">Key Strengths:</span>
-            <span class="value">{{ job.feedback.key_strengths }}</span>
+        <!-- Right: Timeline -->
+        <div class="timeline-section">
+          <h3>Application Timeline</h3>
+          <div class="status-timeline">
+            <!-- Applied Step -->
+            <div class="timeline-step" data-step="applied" [class.active]="job.status === 'applied'">
+              <div class="circle"></div>
+              <span>Applied</span>
+              <div class="date">{{ job.applied_date || 'N/A' }}</div>
+            </div>
+            <div class="timeline-line"></div>
+
+            <!-- Interview Step -->
+            <div class="timeline-step" data-step="interview" [class.active]="job.status === 'interview'">
+              <div class="circle"></div>
+              <span>Interview</span>
+              <div class="date">--</div>
+            </div>
+            <div class="timeline-line"></div>
+
+            <!-- Offer Step -->
+            <div class="timeline-step" data-step="offer" [class.active]="job.status === 'offer'">
+              <div class="circle"></div>
+              <span>Offer</span>
+              <div class="date">--</div>
+            </div>
+            <div class="timeline-line"></div>
+
+            <!-- Accepted Step -->
+            <div class="timeline-step" data-step="accepted" [class.active]="job.status === 'accepted'">
+              <div class="circle"></div>
+              <span>Accepted</span>
+              <div class="date">--</div>
+            </div>
+            <div class="timeline-line"></div>
+
+            <!-- Rejected Step -->
+            <div class="timeline-step" data-step="rejected" [class.active]="job.status === 'rejected'">
+              <div class="circle"></div>
+              <span>Rejected</span>
+              <div class="date">--</div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </div> <!-- End Row 1 -->
 
+      <!-- Row 2: Feedback & Interview Q&A (No Wrap => always side-by-side) -->
+      <div class="feedback-qa-row">
+        <!-- Left: Basic Feedback -->
+        <div class="basic-feedback-col">
+          <h3>Feedback</h3>
+          <div class="feedback-grid">
+            <div class="feedback-item">
+              <span class="label">Category:</span>
+              <span class="value">
+                {{ job.feedback?.category_name || 'No category' }}
+                ({{ job.feedback?.category_type || 'N/A' }})
+              </span>
+            </div>
+            <div class="feedback-item">
+              <span class="label">Summary:</span>
+              <span class="value">
+                {{ job.feedback?.notes || 'No feedback summary' }}
+              </span>
+            </div>
+            <div class="feedback-item full" *ngIf="job.feedback?.detailed_feedback">
+              <span class="label">Detailed Feedback:</span>
+              <span class="value">{{ job.feedback?.detailed_feedback }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Interview Q&A -->
+        <div class="interview-qa-col">
+          <h3>Interview Q&A</h3>
+          <div *ngIf="interviewQuestions.length > 0; else noQA">
+            <div *ngFor="let qa of interviewQuestions; let i = index" class="qa-entry">
+              <p><strong>Q{{ i + 1 }}:</strong> {{ qa.question }}</p>
+              <p><strong>A:</strong> {{ qa.answer }}</p>
+            </div>
+          </div>
+          <ng-template #noQA>
+            <p>No Q/A added in that section.</p>
+          </ng-template>
+        </div>
+      </div> <!-- End Row 2 -->
+
+      <!-- Row 3: Key Improvements/Strengths -->
+      <div class="key-points-row">
+        <!-- If Rejected: Key Improvements -->
+        <div class="key-improvements" *ngIf="job.status === 'rejected'">
+          <h3>Key Improvements</h3>
+          <div class="value" *ngIf="feedbackImprovements?.priority || (feedbackImprovements.additional.length > 0); else noImprovements">
+            <div *ngIf="feedbackImprovements?.priority">
+              <strong>Priority:</strong> {{ feedbackImprovements.priority }}
+            </div>
+            <div *ngIf="feedbackImprovements.additional.length > 0">
+              <strong>Additional:</strong>
+              <ul>
+                <li *ngFor="let imp of feedbackImprovements?.additional">{{ imp }}</li>
+              </ul>
+            </div>
+          </div>
+          <ng-template #noImprovements>
+            <div class="value">No improvements added.</div>
+          </ng-template>
+        </div>
+
+        <!-- If Accepted/Offer: Key Strengths -->
+        <div class="key-strengths" *ngIf="job.status === 'accepted' || job.status === 'offer'">
+          <h3>Key Strengths</h3>
+          <div class="value" *ngIf="feedbackStrengths?.priority || (feedbackStrengths.additional.length > 0); else noStrengths">
+            <div *ngIf="feedbackStrengths?.priority">
+              <strong>Priority:</strong> {{ feedbackStrengths.priority }}
+            </div>
+            <div *ngIf="feedbackStrengths.additional.length > 0">
+              <strong>Additional:</strong>
+              <ul>
+                <li *ngFor="let str of feedbackStrengths?.additional">{{ str }}</li>
+              </ul>
+            </div>
+          </div>
+          <ng-template #noStrengths>
+            <div class="value">No strengths added.</div>
+          </ng-template>
+        </div>
+      </div> <!-- End Row 3 -->
+    </div> <!-- End Card Body -->
+
+    <!-- Footer -->
     <footer class="card-footer">
       <button class="btn btn-primary" (click)="goBack()">Back to List</button>
     </footer>
-  </div>
-</div>
+  </div> <!-- End Card -->
+</div> <!-- End Wrapper -->
 
 <ng-template #errorTemplate>
   <div class="error">{{ errorMessage }}</div>

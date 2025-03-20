@@ -12,13 +12,16 @@ import { CommonModule } from '@angular/common';
 })
 export class JobDetailsComponent {
   job: any = null;
+  feedbackStrengths: { priority: string; additional: string[] } = { priority: '', additional: [] };
+  feedbackImprovements: { priority: string; additional: string[] } = { priority: '', additional: [] };
+  interviewQuestions: any[] = [];
   errorMessage = '';
 
   constructor(
-    private route: ActivatedRoute, 
-    private router: Router,  
+    private route: ActivatedRoute,
+    private router: Router,
     private jobService: JobService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.loadJobDetails();
@@ -27,20 +30,65 @@ export class JobDetailsComponent {
   loadJobDetails(): void {
     const jobId = this.route.snapshot.paramMap.get('id');
     if (jobId) {
-      this.jobService.getJobById(+jobId).subscribe(
-        res => {
-          console.log("✅ Loaded Job Data:", res);  // Debugging log
+      this.jobService.getJobById(+jobId).subscribe({
+        next: (res) => {
           this.job = res;
+          // Once the job is loaded, load extras and interview Q&A.
+          this.loadFeedbackStrengths(+jobId);
+          this.loadFeedbackImprovements(+jobId);
+          this.loadInterviewQuestions(+jobId);
         },
-        err => {
+        error: err => {
           console.error(err);
           this.errorMessage = 'Error fetching job details';
         }
-      );
+      });
     }
+  }
+
+  loadFeedbackStrengths(jobId: number): void {
+    this.jobService.getFeedbackStrengths(jobId).subscribe({
+      next: (res) => {
+        this.feedbackStrengths = res;
+      },
+      error: err => {
+        console.error(err);
+        this.errorMessage = 'Error fetching feedback strengths';
+      }
+    });
+  }
+
+  loadFeedbackImprovements(jobId: number): void {
+    this.jobService.getFeedbackImprovements(jobId).subscribe({
+      next: (res) => {
+        this.feedbackImprovements = res;
+      },
+      error: err => {
+        console.error(err);
+        this.errorMessage = 'Error fetching feedback improvements';
+      }
+    });
+  }
+
+  loadInterviewQuestions(jobId: number): void {
+    this.jobService.getInterviewQAs(jobId).subscribe({
+      next: (res) => {
+        this.interviewQuestions = res;
+      },
+      error: err => {
+        console.error(err);
+        this.errorMessage = 'Error fetching interview questions';
+      }
+    });
   }
 
   goBack(): void {
     this.router.navigate(['/jobs']);
+  }
+
+  // Placeholder for timeline ordering if needed later
+  isAfter(statusName: string): boolean {
+    // TODO: Implement ordering logic.
+    return false;
   }
 }
