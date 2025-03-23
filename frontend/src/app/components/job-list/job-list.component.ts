@@ -2,6 +2,7 @@ import { Component, HostListener, OnInit, AfterViewInit, ViewChild, ElementRef }
 import { JobService } from '../../services/job.service';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { StatusPillComponent } from '../status-pill/status-pill.component';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -9,7 +10,7 @@ import { saveAs } from 'file-saver';
 @Component({
   selector: 'app-job-list',
   standalone: true,
-  imports: [CommonModule, StatusPillComponent, RouterLink],
+  imports: [CommonModule, FormsModule, StatusPillComponent, RouterLink],
   templateUrl: './job-list.component.html',
   styleUrls: ['./job-list.component.css']
 })
@@ -19,6 +20,14 @@ export class JobListComponent implements OnInit, AfterViewInit {
   currentPage = 1;
   totalPages = 1;
   jobsPerPage: number = 5;
+
+  // Filters for search text, status and role category
+  filters: { searchText: string; status: string; sortBy: string; sortOrder: string } = {
+    searchText: '',
+    status: '',
+    sortBy: 'sort_by',
+    sortOrder: 'desc'
+  };
 
   @ViewChild('tableContainer') tableContainer!: ElementRef;
 
@@ -30,7 +39,6 @@ export class JobListComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Slight delay to ensure the container is rendered
     setTimeout(() => {
       this.calculateJobsPerPage();
       this.loadJobs();
@@ -47,18 +55,15 @@ export class JobListComponent implements OnInit, AfterViewInit {
     if (this.tableContainer?.nativeElement) {
       const container = this.tableContainer.nativeElement;
       const rowHeight = 70;
-      // Adjust for any header/footer space
-      const availableHeight =
-        window.innerHeight - container.getBoundingClientRect().top - 100;
+      const availableHeight = window.innerHeight - container.getBoundingClientRect().top - 100;
       this.jobsPerPage = Math.max(2, Math.floor(availableHeight / rowHeight));
     } else {
-      // Fallback if container is not ready
       this.jobsPerPage = window.innerWidth < 768 ? 3 : 6;
     }
   }
 
   loadJobs(): void {
-    this.jobService.getJobs(this.currentPage, this.jobsPerPage).subscribe(
+    this.jobService.getJobs(this.currentPage, this.jobsPerPage, this.filters).subscribe(
       (res: any) => {
         this.jobs = res.jobs;
         this.totalPages = res.totalPages;
@@ -68,6 +73,11 @@ export class JobListComponent implements OnInit, AfterViewInit {
         this.errorMessage = 'Error loading jobs';
       }
     );
+  }
+
+  applyFilters(): void {
+    this.currentPage = 1;
+    this.loadJobs();
   }
 
   goToPage(page: number): void {

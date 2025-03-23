@@ -56,12 +56,69 @@ body {
   border-radius: 2px;
 }
 
-/* 🌟 Table Controls */
+/* ===================== HEADER BAR ===================== */
+/* 
+   A single row that holds both the filter controls
+   and the table controls (Add New, Export).
+*/
+.header-bar {
+  display: flex;
+  flex-wrap: wrap;       /* allow wrapping on smaller screens */
+  align-items: flex-end; /* align items along the baseline */
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+/* 🌟 Filter Container (Search, Status, Sort) */
+.filter-container {
+  display: flex;
+  flex-wrap: wrap; /* Allows wrapping on smaller screens */
+  gap: 10px;
+  margin: 0; /* so it aligns well in .header-bar */
+  align-items: center;
+}
+
+.filter-container input[type="text"],
+.filter-container select {
+  border: 2px solid #6C63FF;
+  background: transparent;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.filter-container input[type="text"]:hover,
+.filter-container select:hover {
+  background: #f3f4f6;
+}
+
+.filter-container input[type="text"]:focus,
+.filter-container select:focus {
+  background: #fff;
+  border-color: #5A54D7;
+  box-shadow: 0 0 3px rgba(90, 84, 215, 0.3);
+}
+
+/* The status <select> and the sort <select> controls */
+.filter-container select {
+  padding: 5px 10px;
+  font-size: 1rem;
+}
+
+/* Sort controls as a small group: Sort By + Sort Order */
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 🌟 Table Controls (Add New + Export) */
 .table-controls {
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
-  margin-bottom: 15px;
+  margin: 0;  /* no extra margin since we’re in the same row as filter-container */
 }
 
 /* 🌟 Primary Button */
@@ -97,27 +154,6 @@ body {
   background: #6C63FF;
   color: #fff;
   transform: translateY(-1px);
-}
-
-/* Success Button (if needed) */
-.btn-success {
-  background: #00C9A7;
-  color: #fff;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-success:hover {
-  background: #00AE8C;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* 🌟 Edit / Delete Buttons */
@@ -247,4 +283,20 @@ body {
 .page-number.active {
   background: #6C63FF;
   color: #fff;
+}
+
+/* ===================== MEDIA QUERY FOR SMALL SCREENS ===================== */
+@media (max-width: 600px) {
+  .header-bar {
+    align-items: flex-start; /* or center, if you prefer stacked alignment */
+  }
+  .filter-container {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .table-controls {
+    justify-content: flex-start;
+    margin-top: 10px;
+  }
 }

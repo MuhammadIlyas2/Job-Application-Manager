@@ -1,20 +1,58 @@
 <div #tableContainer class="job-list-container">
-  <!-- Simple Heading (No Full-Width Purple Bar) -->
+
+  <!-- Simple Heading -->
   <h1 class="page-title">
     <i class="fas fa-clipboard-list"></i> Job Applications
   </h1>
 
-  <!-- Table Controls (Add + Export) -->
-  <div class="table-controls">
-    <!-- Primary Button (Add New) -->
-    <a routerLink="/job-form" class="btn-primary">
-      <i class="fas fa-plus"></i> Add New
-    </a>
+  <!-- Combined row: Filters + Table Controls -->
+  <div class="header-bar">
+    <!-- Filter Container -->
+    <div class="filter-container">
+      <input
+        type="text"
+        placeholder="Search Title / Company..."
+        [(ngModel)]="filters.searchText"
+        (ngModelChange)="applyFilters()"
+      />
 
-    <!-- Outline Button (Export) -->
-    <button (click)="exportToExcel()" class="btn-primary btn-outline">
-      <i class="fas fa-file-excel"></i> Export
-    </button>
+      <select [(ngModel)]="filters.status" (change)="applyFilters()">
+        <option value="">All Statuses</option>
+        <option value="applied">Applied</option>
+        <option value="interview">Interview</option>
+        <option value="offer">Offer</option>
+        <option value="accepted">Accepted</option>
+        <option value="rejected">Rejected</option>
+      </select>
+
+      <div class="sort-controls">
+        <select [(ngModel)]="filters.sortBy" (change)="applyFilters()">
+          <option value="sort_by">Sort By</option>
+          <option value="created_at">Application Creation Date</option>
+          <option value="applied_date">Applied Date</option>
+          <option value="job_title">Job Title</option>
+          <option value="company">Company</option>
+        </select>
+        <select
+          *ngIf="filters.sortBy !== 'sort_by'"
+          [(ngModel)]="filters.sortOrder"
+          (change)="applyFilters()"
+        >
+          <option value="asc">Ascending</option>
+          <option value="desc" selected>Descending</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table Controls (Add New + Export) -->
+    <div class="table-controls">
+      <a routerLink="/job-form" class="btn-primary">
+        <i class="fas fa-plus"></i> Add New
+      </a>
+      <button (click)="exportToExcel()" class="btn-primary btn-outline">
+        <i class="fas fa-file-excel"></i> Export
+      </button>
+    </div>
   </div>
 
   <!-- Table of Jobs -->
@@ -41,7 +79,6 @@
         <td>
           <app-status-pill [status]="job.status"></app-status-pill>
         </td>
-        <!-- Feedback: If none, show faded/italic text -->
         <td [ngClass]="{'faded-feedback': job.feedback === 'No feedback yet'}">
           {{ job.feedback || 'No feedback yet' }}
         </td>

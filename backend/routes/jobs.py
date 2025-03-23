@@ -155,25 +155,51 @@ def create_or_list_jobs():
             limit = request.args.get('limit', default=5, type=int)
             offset = (page - 1) * limit
 
-            count_query = text("SELECT COUNT(*) FROM job_application WHERE user_id = :user_id")
-            total_jobs = db.session.execute(count_query, {"user_id": current_user_id}).scalar()
+            # Extract filter parameters
+            search = request.args.get('search', None)
+            status_filter = request.args.get('status', None)
+
+            # Extract sort parameters, with defaults:
+            sort_by = request.args.get('sort_by', 'created_at')
+            sort_order = request.args.get('sort_order', 'desc').lower()
+
+            # Validate sort_by and sort_order
+            valid_sort_by = ['applied_date', 'job_title', 'company', 'created_at']
+            if sort_by not in valid_sort_by:
+                sort_by = 'created_at'
+            if sort_order not in ['asc', 'desc']:
+                sort_order = 'desc'
+
+            # Build WHERE clause dynamically (using LIKE for MySQL)
+            where_clauses = ["ja.user_id = :user_id"]
+            params = {"user_id": current_user_id, "limit": limit, "offset": offset}
+
+            if search:
+                where_clauses.append("(ja.job_title LIKE :search OR ja.company LIKE :search)")
+                params["search"] = f"%{search}%"
+            if status_filter:
+                where_clauses.append("ja.status = :status")
+                params["status"] = status_filter
+
+            where_clause = " AND ".join(where_clauses)
+
+            # Count query with filtering
+            count_query = text(f"SELECT COUNT(*) FROM job_application ja WHERE {where_clause}")
+            total_jobs = db.session.execute(count_query, params).scalar()
             total_pages = ceil(total_jobs / limit) if limit else 1
 
-            query = text("""
+            # Main query with sorting and filtering
+            query = text(f"""
                 SELECT 
                     ja.id, ja.job_title, ja.company, ja.status, ja.general_notes, ja.applied_date,
                     COALESCE(f.notes, 'No feedback yet') AS feedback
                 FROM job_application ja
                 LEFT JOIN feedback f ON ja.id = f.job_id
-                WHERE ja.user_id = :user_id
-                ORDER BY ja.created_at DESC, ja.applied_date DESC
+                WHERE {where_clause}
+                ORDER BY ja.{sort_by} {sort_order}, ja.id DESC
                 LIMIT :limit OFFSET :offset;
             """)
-            results = db.session.execute(query, {
-                "user_id": current_user_id,
-                "limit": limit,
-                "offset": offset
-            }).fetchall()
+            results = db.session.execute(query, params).fetchall()
 
             job_list = [{
                 "id": row[0],
@@ -193,7 +219,7 @@ def create_or_list_jobs():
             }), 200
 
         except Exception as e:
-            print(f"❌ ERROR in create_or_list_jobs: {str(e)}")
+            print(f"❌ ERROR in create_or_list_jobs (GET): {str(e)}")
             return jsonify({"error": str(e)}), 500
 
     return jsonify({'message': 'Invalid request method'}), 405

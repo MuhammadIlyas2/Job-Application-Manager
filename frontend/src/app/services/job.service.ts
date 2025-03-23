@@ -17,11 +17,31 @@ export class JobService {
     return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
   }
 
-  // Fetch Jobs with Pagination
-  getJobs(page: number = 1, limit: number = 5): Observable<any> {
+  // Fetch Jobs with Pagination and filters
+  getJobs(
+    page: number = 1,
+    limit: number = 5,
+    filters?: { searchText?: string; status?: string; sortBy?: string; sortOrder?: string }
+  ): Observable<any> {
     const headers = this.getAuthHeaders();
-    return this.http.get(`${this.baseUrl}?page=${page}&limit=${limit}`, { headers });
+    let params = `?page=${page}&limit=${limit}`;
+    if (filters) {
+      if (filters.searchText) {
+        params += `&search=${encodeURIComponent(filters.searchText)}`;
+      }
+      if (filters.status) {
+        params += `&status=${encodeURIComponent(filters.status)}`;
+      }
+      if (filters.sortBy) {
+        params += `&sort_by=${encodeURIComponent(filters.sortBy)}`;
+      }
+      if (filters.sortOrder) {
+        params += `&sort_order=${encodeURIComponent(filters.sortOrder)}`;
+      }
+    }
+    return this.http.get(`${this.baseUrl}${params}`, { headers });
   }
+
 
   // Get Job Details
   getJobById(jobId: number): Observable<any> {
@@ -68,14 +88,12 @@ export class JobService {
   // Get Recommended Questions for a Job
   getRecommendedQuestions(jobId: number): Observable<any> {
     const headers = this.getAuthHeaders();
-    console.log("DEBUG: Calling GET recommended questions for jobId:", jobId);
     return this.http.get<any>(`${this.baseUrl}/${jobId}/recommended-questions`, { headers });
   }
 
   // Get All Recommended Questions
   getAllRecommendedQuestions(): Observable<any> {
     const headers = this.getAuthHeaders();
-    console.log("DEBUG: Calling GET all recommended questions");
     return this.http.get<any>(`${this.baseUrl}/recommended-questions`, { headers });
   }
 
@@ -103,6 +121,7 @@ export class JobService {
     return this.http.get<any>(`${this.baseUrl}/${jobId}/feedback/improvements`, { headers });
   }
 
+  // Get Job Status History for a Job
   getJobStatusHistory(jobId: number): Observable<any> {
     const headers = this.getAuthHeaders();
     return this.http.get<any>(`${this.baseUrl}/${jobId}/status-history`, { headers });
