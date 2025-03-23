@@ -1,7 +1,7 @@
 from math import ceil
 from flask import Blueprint, request, jsonify
 from extensions import db
-from models import JobApplication, User, FeedbackCategory, QuestionBank, JobInterviewQuestion
+from models import JobApplication, User, FeedbackCategory, QuestionBank, JobInterviewQuestion, JobStatusHistory
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_cors import cross_origin
 from sqlalchemy import text, func
@@ -82,6 +82,7 @@ def create_or_list_jobs():
         if not user:
             return jsonify({'message': 'User not found'}), 404
 
+        # Parse applied_date from data
         applied_date = datetime.strptime(data['applied_date'], "%Y-%m-%d").date() if data.get('applied_date') else None
         created_at = datetime.utcnow()
 
@@ -99,9 +100,8 @@ def create_or_list_jobs():
             db.session.add(job)
             db.session.commit()
 
-            # Insert basic feedback record (without strengths/improvements)
+            # Insert basic feedback record (if provided)
             if 'feedback' in data and data['feedback']:
-                # Note: key_improvements and key_strengths are no longer stored here.
                 insert_feedback_query = text("""
                     INSERT INTO feedback (job_id, category_id, notes, detailed_feedback)
                     VALUES (:job_id, :category_id, :notes, :detailed_feedback);
@@ -113,21 +113,35 @@ def create_or_list_jobs():
                     "detailed_feedback": data['feedback'].get('detailed_feedback', '')
                 })
                 db.session.commit()
-
-                # After inserting the feedback record, update extras (strengths and improvements)
-                # Expect the frontend to send extras under keys "strengths" and "improvements"
                 extras = data['feedback']
-                # Fetch the newly inserted feedback id
-                feedback = db.session.execute(text("SELECT id FROM feedback WHERE job_id = :job_id"), {"job_id": job.id}).fetchone()
+                feedback = db.session.execute(
+                    text("SELECT id FROM feedback WHERE job_id = :job_id"),
+                    {"job_id": job.id}
+                ).fetchone()
                 if feedback:
                     feedback_id = feedback[0]
-                    # Update strengths (if provided)
                     if "strengths" in extras:
                         update_feedback_extras(feedback_id, extras["strengths"], "feedback_strength")
-                    # Update improvements (if provided)
                     if "improvements" in extras:
                         update_feedback_extras(feedback_id, extras["improvements"], "feedback_improvement")
                     db.session.commit()
+
+            # Insert status history records for statuses other than "applied"
+            # (The applied date is already in job.applied_date.)
+            # Expected additional fields: interview_date, offer_date, accepted_date, rejected_date.
+            additional_statuses = [
+                ('interview', data.get('interview_date')),
+                ('offer', data.get('offer_date')),
+                ('accepted', data.get('accepted_date')),
+                ('rejected', data.get('rejected_date'))
+            ]
+            for status, date_val in additional_statuses:
+                if date_val:
+                    db.session.execute(text("""
+                        INSERT INTO job_status_history (job_id, status, status_date)
+                        VALUES (:job_id, :status, :status_date)
+                    """), {"job_id": job.id, "status": status, "status_date": date_val})
+            db.session.commit()
 
             return jsonify({'message': 'Job application added', 'job': job.serialize()}), 201
         except Exception as e:
@@ -215,6 +229,10 @@ def get_job(job_id):
             "status": result[3],
             "general_notes": result[4],
             "applied_date": applied_date,
+            "interview_date": '',
+            "offer_date": '',       
+            "accepted_date": '',  
+            "rejected_date": '',   
             "created_at": created_at,
             "role_category": result[7],
             "feedback": {
@@ -353,15 +371,16 @@ def update_job(job_id):
         if not row:
             return jsonify({"message": "Job not found"}), 404
         db_user_id = int(row[0])
-        print(f"DEBUG: DB user_id: {db_user_id}, Current user_id: {current_user_id}")
         if db_user_id != current_user_id:
             return jsonify({"message": "Unauthorized"}), 403
+
         applied_date = None
         if data.get('applied_date'):
             try:
                 applied_date = datetime.strptime(data['applied_date'], "%Y-%m-%d").date()
             except Exception as e:
                 return jsonify({"message": "Invalid applied_date format"}), 400
+        
         update_query = text("""
             UPDATE job_application
             SET job_title = :job_title,
@@ -382,6 +401,26 @@ def update_job(job_id):
             "general_notes": data.get('general_notes', '')
         })
         db.session.commit()
+
+        # Update status history:
+        # Delete existing history records for this job
+        db.session.execute(text("DELETE FROM job_status_history WHERE job_id = :job_id"), {"job_id": job_id})
+        db.session.commit()
+        # Reinsert new history rows for statuses other than "applied"
+        additional_statuses = [
+            ('interview', data.get('interview_date')),
+            ('offer', data.get('offer_date')),
+            ('accepted', data.get('accepted_date')),
+            ('rejected', data.get('rejected_date'))
+        ]
+        for status, date_val in additional_statuses:
+            if date_val:
+                db.session.execute(text("""
+                    INSERT INTO job_status_history (job_id, status, status_date)
+                    VALUES (:job_id, :status, :status_date)
+                """), {"job_id": job_id, "status": status, "status_date": date_val})
+        db.session.commit()
+
         return jsonify({"message": "Job updated successfully by update job"}), 200
     except Exception as e:
         db.session.rollback()
@@ -565,6 +604,24 @@ def get_feedback_improvements(job_id):
             else:
                 additional.append(row[1])
         return jsonify({"priority": priority, "additional": additional}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+    
+@jobs_bp.route('/<int:job_id>/status-history', methods=['GET'])
+@jwt_required()
+def get_job_status_history(job_id):
+    try:
+        query = text("""
+            SELECT id, job_id, status, status_date, created_at 
+            FROM job_status_history 
+            WHERE job_id = :job_id 
+            ORDER BY status_date ASC
+        """)
+        results = db.session.execute(query, {"job_id": job_id}).fetchall()
+        # Use row._mapping to convert each row to a dictionary
+        history = [dict(row._mapping) for row in results]
+        return jsonify(history), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500

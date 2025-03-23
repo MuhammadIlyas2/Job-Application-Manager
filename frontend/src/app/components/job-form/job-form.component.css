@@ -282,3 +282,12 @@ html, body {
   text-align: center;
   font-weight: bold;
 }
+
+.date-row {
+  display: flex;
+  gap: 15px;
+}
+
+.date-col {
+  flex: 1;
+}

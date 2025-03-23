@@ -14,13 +14,19 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./job-form.component.css']
 })
 export class JobFormComponent {
-  // Main job properties
+  // New date properties added: interview_date, offer_date, accepted_date, rejected_date
   job: any = {
     job_title: '',
     company: '',
     status: 'applied',
     general_notes: '',
     feedbackSummary: '',
+    // New date fields:
+    applied_date: '',
+    interview_date: '',
+    offer_date: '',
+    accepted_date: '',
+    rejected_date: '',
     feedback: {
       id: undefined,
       notes: '',
@@ -66,7 +72,7 @@ export class JobFormComponent {
   ngOnInit(): void {
     this.roles = this.roleService.getRoles();
     this.loadFeedbackCategories();
-  
+
     const jobId = this.route.snapshot.paramMap.get('id');
     if (jobId) {
       this.isEditMode = true;
@@ -74,9 +80,7 @@ export class JobFormComponent {
       this.fetchRecommendedQuestions(+jobId);
       // Load existing Interview Q&A (for the job’s feedback)
       this.jobService.getInterviewQAs(+jobId).subscribe({
-        next: (res) => {
-          this.selectedQA = res;
-        },
+        next: (res) => { this.selectedQA = res; },
         error: (err) => console.error('Failed to load interview questions', err)
       });
       // Also load strengths & improvements extras if needed.
@@ -103,7 +107,6 @@ export class JobFormComponent {
     }
   }
   
-
   private loadFeedbackCategories(): void {
     this.jobService.getFeedbackCategories().subscribe({
       next: (res) => {
@@ -146,10 +149,15 @@ export class JobFormComponent {
   private loadJob(jobId: string): void {
     this.jobService.getJobById(+jobId).subscribe({
       next: (res) => {
+        // Initialize job with empty date fields for extra statuses.
         this.job = {
           ...res,
           role_category: res.role_category || '',
           applied_date: res.applied_date ? new Date(res.applied_date).toISOString().split('T')[0] : '',
+          interview_date: '',
+          offer_date: '',
+          accepted_date: '',
+          rejected_date: '',
           feedback: {
             id: res.feedback ? res.feedback.id : undefined,
             notes: res.feedback?.notes || '',
@@ -161,10 +169,34 @@ export class JobFormComponent {
             category_id: res.feedback?.category_id || null
           }
         };
+  
+        // Set the feedback summary (for the input field)
         this.job.feedbackSummary = typeof this.job.feedback.notes === 'string'
           ? this.job.feedback.notes
           : '';
+        
         this.filterCategories();
+        
+        // Load the status history for this job and update the corresponding date fields.
+        this.jobService.getJobStatusHistory(+jobId).subscribe({
+          next: (history) => {
+            (history as any[]).forEach((record: any) => {
+              const dateStr = record.status_date ? new Date(record.status_date).toISOString().split('T')[0] : '';
+              if (record.status === 'interview') {
+                this.job.interview_date = dateStr;
+              } else if (record.status === 'offer') {
+                this.job.offer_date = dateStr;
+              } else if (record.status === 'accepted') {
+                this.job.accepted_date = dateStr;
+              } else if (record.status === 'rejected') {
+                this.job.rejected_date = dateStr;
+              }
+            });
+          },
+          error: (err) => {
+            console.error('Failed to load job status history', err);
+          }
+        });
       },
       error: (err) => {
         this.errorMessage = 'Failed to load job details';
@@ -177,12 +209,11 @@ export class JobFormComponent {
     // Prepare the basic job and feedback data
     const jobData = { ...this.job };
   
-    // Build the feedback extras as separate objects instead of a combined string.
+    // Build the feedback extras as separate objects.
     const feedbackData = {
       notes: this.job.feedbackSummary.substring(0, 50),
       category_id: this.job.feedback.category_id,
       detailed_feedback: this.job.feedback.detailed_feedback,
-      // Send strengths and improvements as separate objects:
       strengths: {
         priority: this.job.feedback.priority_strength,
         additional: this.job.feedback.additional_strengths
@@ -196,6 +227,13 @@ export class JobFormComponent {
     // Remove the nested feedback object from jobData so it isn’t sent twice.
     delete jobData.feedback;
   
+    // Include the new date fields in jobData.
+    jobData.applied_date = this.job.applied_date;
+    jobData.interview_date = this.job.interview_date;
+    jobData.offer_date = this.job.offer_date;
+    jobData.accepted_date = this.job.accepted_date;
+    jobData.rejected_date = this.job.rejected_date;
+  
     const operation = this.isEditMode
       ? this.jobService.updateJob(this.job.id, jobData)
       : this.jobService.createJob(jobData);
@@ -203,7 +241,6 @@ export class JobFormComponent {
     operation.subscribe({
       next: (res) => {
         const jobId = this.isEditMode ? this.job.id : res.job.id;
-        // Save feedback extras (strengths & improvements) if there is any data.
         if (
           feedbackData.notes.trim() ||
           feedbackData.category_id ||
@@ -222,7 +259,6 @@ export class JobFormComponent {
     });
   }
   
-
   private handleFeedback(jobId: number, feedbackData: any): void {
     const operation = this.job.feedback?.id
       ? this.jobService.updateFeedback(jobId, feedbackData)
@@ -237,7 +273,7 @@ export class JobFormComponent {
       }
     });
   }
-
+  
   private saveInterviewQAs(jobId: number): void {
     this.jobService.saveInterviewQAs(jobId, this.selectedQA).subscribe({
       next: (res) => {
@@ -250,9 +286,9 @@ export class JobFormComponent {
       }
     });
   }
-
+  
   // ================= Additional Strengths/Improvements Methods =================
-
+  
   addAdditionalStrength(): void {
     this.job.feedback.additional_strengths.push('');
   }
@@ -265,9 +301,9 @@ export class JobFormComponent {
   removeAdditionalImprovement(index: number): void {
     this.job.feedback.additional_improvements.splice(index, 1);
   }
-
+  
   // ================= Interview Q&A Methods =================
-
+  
   toggleInterviewQA(): void {
     if (!this.showInterviewQASection && this.selectedQA.length === 0) {
       this.addInterviewQA();
@@ -326,9 +362,9 @@ export class JobFormComponent {
       });
     }
   }
-
+  
   // ================= Utility Methods =================
-
+  
   private setCurrentUser(): void {
     this.authService.getCurrentUser().subscribe({
       next: (user) => (this.job.user_id = user.id),
@@ -339,7 +375,7 @@ export class JobFormComponent {
     this.errorMessage = err.error?.message || 'Operation failed. Please try again.';
     console.error(err);
   }
-
+  
   // ================= TrackBy Function for ngFor =================
   trackByIndex(index: number, item: any): number {
     return index;

@@ -163,3 +163,21 @@ class JobInterviewQuestion(db.Model):
             "answer": self.answer,
             "created_at": self.created_at.isoformat()
         }
+
+
+class JobStatusHistory(db.Model):
+    __tablename__ = 'job_status_history'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    job_id = db.Column(db.Integer, db.ForeignKey('job_application.id', ondelete='CASCADE'), nullable=False)
+    status = db.Column(db.Enum('applied', 'interview', 'offer', 'accepted', 'rejected'), nullable=False, default='applied')
+    status_date = db.Column(db.Date, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "job_id": self.job_id,
+            "status": self.status,
+            "status_date": self.status_date.isoformat() if self.status_date else None,
+            "created_at": self.created_at.isoformat()
+        }

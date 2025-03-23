@@ -1,10 +1,16 @@
 <div class="job-details-wrapper" *ngIf="job; else errorTemplate">
   <div class="card">
     <!-- Header -->
-    <header class="card-header">
-      <h2>Job Summary</h2>
-      <p class="subtitle">{{ job.company }} - {{ job.job_title }}</p>
-    </header>
+<header class="card-header">
+  <!-- Main heading in white, on a purple background -->
+  <h2 class="main-heading">Job Details</h2>
+
+  <!-- Sub-heading: job title and company, also in white but slightly larger -->
+  <div class="job-title-company">
+    <span class="job-title">{{ job.job_title }}</span>
+    <span class="company-name"> at {{ job.company }}</span>
+  </div>
+</header>
 
     <!-- Card Body -->
     <div class="card-body">
@@ -38,7 +44,7 @@
             <div class="timeline-step" data-step="applied" [class.active]="job.status === 'applied'">
               <div class="circle"></div>
               <span>Applied</span>
-              <div class="date">{{ job.applied_date || 'N/A' }}</div>
+              <div class="date">{{ getStatusDate('applied') }}</div>
             </div>
             <div class="timeline-line"></div>
 
@@ -46,7 +52,7 @@
             <div class="timeline-step" data-step="interview" [class.active]="job.status === 'interview'">
               <div class="circle"></div>
               <span>Interview</span>
-              <div class="date">--</div>
+              <div class="date">{{ getStatusDate('interview') }}</div>
             </div>
             <div class="timeline-line"></div>
 
@@ -54,7 +60,7 @@
             <div class="timeline-step" data-step="offer" [class.active]="job.status === 'offer'">
               <div class="circle"></div>
               <span>Offer</span>
-              <div class="date">--</div>
+              <div class="date">{{ getStatusDate('offer') }}</div>
             </div>
             <div class="timeline-line"></div>
 
@@ -62,7 +68,7 @@
             <div class="timeline-step" data-step="accepted" [class.active]="job.status === 'accepted'">
               <div class="circle"></div>
               <span>Accepted</span>
-              <div class="date">--</div>
+              <div class="date">{{ getStatusDate('accepted') }}</div>
             </div>
             <div class="timeline-line"></div>
 
@@ -70,13 +76,13 @@
             <div class="timeline-step" data-step="rejected" [class.active]="job.status === 'rejected'">
               <div class="circle"></div>
               <span>Rejected</span>
-              <div class="date">--</div>
+              <div class="date">{{ getStatusDate('rejected') }}</div>
             </div>
           </div>
         </div>
       </div> <!-- End Row 1 -->
 
-      <!-- Row 2: Feedback & Interview Q&A (No Wrap => always side-by-side) -->
+      <!-- Row 2: Feedback & Interview Q&A (side-by-side) -->
       <div class="feedback-qa-row">
         <!-- Left: Basic Feedback -->
         <div class="basic-feedback-col">
@@ -85,8 +91,7 @@
             <div class="feedback-item">
               <span class="label">Category:</span>
               <span class="value">
-                {{ job.feedback?.category_name || 'No category' }}
-                ({{ job.feedback?.category_type || 'N/A' }})
+                {{ job.feedback?.category_name || 'No category' }} ({{ job.feedback?.category_type || 'N/A' }})
               </span>
             </div>
             <div class="feedback-item">
@@ -97,7 +102,7 @@
             </div>
             <div class="feedback-item full" *ngIf="job.feedback?.detailed_feedback">
               <span class="label">Detailed Feedback:</span>
-              <span class="value">{{ job.feedback?.detailed_feedback }}</span>
+              <span class="value">{{ job.feedback.detailed_feedback }}</span>
             </div>
           </div>
         </div>
@@ -105,7 +110,7 @@
         <!-- Right: Interview Q&A -->
         <div class="interview-qa-col">
           <h3>Interview Q&A</h3>
-          <div *ngIf="interviewQuestions.length > 0; else noQA">
+          <div *ngIf="interviewQuestions && interviewQuestions.length > 0; else noQA">
             <div *ngFor="let qa of interviewQuestions; let i = index" class="qa-entry">
               <p><strong>Q{{ i + 1 }}:</strong> {{ qa.question }}</p>
               <p><strong>A:</strong> {{ qa.answer }}</p>
@@ -117,7 +122,7 @@
         </div>
       </div> <!-- End Row 2 -->
 
-      <!-- Row 3: Key Improvements/Strengths -->
+      <!-- Row 3: Key Improvements / Key Strengths -->
       <div class="key-points-row">
         <!-- If Rejected: Key Improvements -->
         <div class="key-improvements" *ngIf="job.status === 'rejected'">
@@ -129,7 +134,7 @@
             <div *ngIf="feedbackImprovements.additional.length > 0">
               <strong>Additional:</strong>
               <ul>
-                <li *ngFor="let imp of feedbackImprovements?.additional">{{ imp }}</li>
+                <li *ngFor="let imp of feedbackImprovements.additional">{{ imp }}</li>
               </ul>
             </div>
           </div>
@@ -148,7 +153,7 @@
             <div *ngIf="feedbackStrengths.additional.length > 0">
               <strong>Additional:</strong>
               <ul>
-                <li *ngFor="let str of feedbackStrengths?.additional">{{ str }}</li>
+                <li *ngFor="let str of feedbackStrengths.additional">{{ str }}</li>
               </ul>
             </div>
           </div>

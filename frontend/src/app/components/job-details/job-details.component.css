@@ -40,18 +40,47 @@ html, body {
   
   /* Header styling */
   .card-header {
-    background: #6C63FF;
-    color: #fff;
+    background: #6C63FF; /* Purple bar at top */
+    color: #fff;         /* White text */
     padding: 20px;
-    text-align: center;
+    /* If you'd like a left-aligned heading, remove text-align: center; */
+    text-align: left;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
   }
+
+  .card-header .main-heading {
+    margin: 0;
+    font-size: 1.75rem; /* slightly bigger than normal */
+    font-weight: bold;
+  }
+
+  .card-header .job-title-company {
+    margin-top: 6px; /* small spacing below main heading */
+    font-size: 1.3rem; 
+    font-weight: normal;
+    color: #fff; /* keep text white against purple background */
+  }
+
+  .job-title-company .job-title {
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  
   .card-header h2 {
     margin: 0;
-    font-size: 2.25rem;
+    font-size: 2rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
   }
+  
   .card-header .subtitle {
-    font-size: 0.875rem;
-    opacity: 0.8;
+    font-size: 1rem;
+    opacity: 0.85;
+  }
+
+  .job-title-company .company-name {
+    font-weight: 400;
+    opacity: 0.9; /* slightly lighter to differentiate from the job title */
   }
   
   /* Card footer */
@@ -70,6 +99,7 @@ html, body {
     cursor: pointer;
     transition: background 0.3s;
   }
+  
   .btn-primary {
     background: #6C63FF;
     color: #fff;
@@ -92,7 +122,7 @@ html, body {
   /* Container for the summary & timeline sections */
   .summary-timeline-row {
     display: flex;
-    flex-wrap: wrap; /* allow wrap on big screens if needed */
+    flex-wrap: wrap;
     gap: 20px;
     margin-bottom: 20px;
   }
@@ -133,7 +163,7 @@ html, body {
     justify-content: center;
     gap: 0.5rem;
     margin-top: 1rem;
-    flex-wrap: wrap; /* if you truly never want wrapping, remove this */
+    flex-wrap: wrap;
   }
   .timeline-step {
     display: flex;
@@ -192,8 +222,8 @@ html, body {
   /* ================== SECOND ROW: Basic Feedback & Q&A ================== */
   .feedback-qa-row {
     display: flex;
-    flex-direction: row; /* ensures left-to-right */
-    flex-wrap: nowrap;   /* disables wrapping so Interview Q&A remains on the right */
+    flex-direction: row;
+    flex-wrap: nowrap;
     gap: 20px;
     margin-bottom: 20px;
   }
@@ -203,7 +233,7 @@ html, body {
     flex: 1 1 50%;
     min-width: 280px;
     padding: 10px;
-    border-right: 1px solid #E5E7EB; /* optional divider line */
+    border-right: 1px solid #E5E7EB; 
   }
   .basic-feedback-col h3 {
     font-size: 1.4rem;
@@ -272,9 +302,9 @@ html, body {
     line-height: 1.5;
   }
   
+  /* Mobile adjustments if needed */
   @media (max-width: 600px) {
     .card {
-      /* We'll keep the card's margin or set to 0 if you prefer. */
       margin: 0;
       border-radius: 0;
     }

@@ -61,27 +61,93 @@
       </div>
     </div>
 
-    <!-- Row 3: Applied Date & Feedback Summary -->
-    <div class="form-row">
-      <div class="form-group">
-        <label>Applied Date</label>
-        <input
-          type="date"
-          [(ngModel)]="job.applied_date"
-          name="applied_date"
-        />
+    <!-- Row: Date Inputs & Feedback Summary -->
+<div class="form-row">
+  <div class="form-group date-group">
+    <!-- For Applied: 1 input -->
+    <ng-container *ngIf="job.status === 'applied'">
+      <label>Applied Date</label>
+      <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
+    </ng-container>
+    <!-- For Interview: 2 inputs -->
+    <ng-container *ngIf="job.status === 'interview'">
+      <div class="date-row">
+        <div class="date-col">
+          <label>Applied Date</label>
+          <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
+        </div>
+        <div class="date-col">
+          <label>Interview Date</label>
+          <input type="date" [(ngModel)]="job.interview_date" name="interview_date" />
+        </div>
       </div>
-      <div class="form-group">
-        <label>Feedback Summary (Max 50 chars)</label>
-        <input
-          type="text"
-          [(ngModel)]="job.feedbackSummary"
-          name="feedbackSummary"
-          maxlength="50"
-          placeholder="Brief summary of feedback"
-        />
+    </ng-container>
+    <!-- For Offer: 3 inputs -->
+    <ng-container *ngIf="job.status === 'offer'">
+      <div class="date-row">
+        <div class="date-col">
+          <label>Applied Date</label>
+          <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
+        </div>
+        <div class="date-col">
+          <label>Interview Date</label>
+          <input type="date" [(ngModel)]="job.interview_date" name="interview_date" />
+        </div>
+        <div class="date-col">
+          <label>Offer Date</label>
+          <input type="date" [(ngModel)]="job.offer_date" name="offer_date" />
+        </div>
       </div>
-    </div>
+    </ng-container>
+    <!-- For Accepted: 4 inputs -->
+    <ng-container *ngIf="job.status === 'accepted'">
+      <div class="date-row">
+        <div class="date-col">
+          <label>Applied Date</label>
+          <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
+        </div>
+        <div class="date-col">
+          <label>Interview Date</label>
+          <input type="date" [(ngModel)]="job.interview_date" name="interview_date" />
+        </div>
+        <div class="date-col">
+          <label>Offer Date</label>
+          <input type="date" [(ngModel)]="job.offer_date" name="offer_date" />
+        </div>
+        <div class="date-col">
+          <label>Accepted Date</label>
+          <input type="date" [(ngModel)]="job.accepted_date" name="accepted_date" />
+        </div>
+      </div>
+    </ng-container>
+    <!-- For Rejected: 4 inputs -->
+    <ng-container *ngIf="job.status === 'rejected'">
+      <div class="date-row">
+        <div class="date-col">
+          <label>Applied Date</label>
+          <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
+        </div>
+        <div class="date-col">
+          <label>Interview Date</label>
+          <input type="date" [(ngModel)]="job.interview_date" name="interview_date" />
+        </div>
+        <div class="date-col">
+          <label>Offer Date</label>
+          <input type="date" [(ngModel)]="job.offer_date" name="offer_date" />
+        </div>
+        <div class="date-col">
+          <label>Rejected Date</label>
+          <input type="date" [(ngModel)]="job.rejected_date" name="rejected_date" />
+        </div>
+      </div>
+    </ng-container>
+  </div>
+  <div class="form-group">
+    <label>Feedback Summary (Max 50 chars)</label>
+    <input type="text" [(ngModel)]="job.feedbackSummary" name="feedbackSummary" maxlength="50" placeholder="Brief summary of feedback" default="No feedback yet" />
+  </div>
+</div>
+
 
     <!-- Single Column: Notes -->
     <div class="form-group">
