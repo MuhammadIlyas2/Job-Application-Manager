@@ -1,0 +1,118 @@
+.analytics-dashboard {
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    max-width: 1200px;
+    margin: 20px auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .overview-section {
+    margin-bottom: 30px;
+  }
+
+  h2{
+    color: #6C63FF;
+  }
+
+  /* 🌟 Simpler Page Title (No Full-Width Bar) */
+.page-title {
+    color: #6C63FF;
+    font-size: 28px;
+    font-weight: 600;
+    text-align: center;
+    margin: 0 0 20px 0;
+    display: inline-block;
+    position: relative;
+  }
+  
+  /* Optional icon spacing if you keep the icon */
+  .page-title i {
+    margin-right: 8px;
+    font-size: 1.2em;
+  }
+  
+  /* Small decorative underline */
+  .page-title::after {
+    content: "";
+    display: block;
+    width: 50px;
+    height: 3px;
+    background: #6C63FF;
+    margin: 10px auto 0;
+    border-radius: 2px;
+  }
+
+  .header-bar {
+    display: flex;
+    flex-wrap: wrap;       /* allow wrapping on smaller screens */
+    align-items: flex-end; /* align items along the baseline */
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+
+  h3 {
+    color: #6C63FF;
+  }
+  
+  /* The container that holds multiple metric cards */
+.metrics-summary {
+    display: flex;
+    gap: 1rem;
+    /* Optionally, make them fill horizontally */
+    justify-content: space-evenly;
+  }
+  
+  /* Each card with a background and padding */
+  .metric-card {
+    flex: 1;
+    background: #f9f9f9; /* or any background color you like */
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  
+  /* Title styling for the small heading in the card */
+  .metric-card h3 {
+    margin-bottom: 0.5rem;
+    color: #555;
+    font-size: 1.2rem;
+  }
+  
+  .metric-value {
+    font-size: 8rem;         /* Increase font size as needed */
+    font-weight: 700;        /* Bold text */
+    color: #6C63FF;             /* Adjust color if needed */
+    display: flex;           /* Use flexbox for centering */
+    justify-content: center; /* Center horizontally */
+    align-items: center;     /* Center vertically */
+    text-align: center;      /* Ensure text is centered */
+    width: 100%;             /* Take full available width */
+    height: 100%;            /* Take full available height of its container */
+    margin: 0;               /* Remove default margin */
+
+  }
+  
+  .trends-section {
+    margin-top: 30px;
+  }
+  
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .chart-description {
+    font-size: 0.9rem;
+    color: #555;
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+  .error {
+    color: red;
+    text-align: center;
+    margin-top: 20px;
+  }
+  

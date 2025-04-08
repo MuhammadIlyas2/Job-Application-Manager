@@ -5,6 +5,7 @@ from extensions import db
 from routes.auth import auth_bp
 from routes.jobs import jobs_bp
 from flask_jwt_extended import decode_token
+from routes.analytics import analytics_bp
 
 
 app = Flask(__name__)
@@ -34,6 +35,8 @@ CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}}, supports_
 # Register Blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(jobs_bp, url_prefix='/api/jobs')
+app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

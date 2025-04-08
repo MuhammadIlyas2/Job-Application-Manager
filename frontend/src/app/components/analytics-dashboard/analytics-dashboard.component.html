@@ -1,9 +1,24 @@
 <div class="analytics-dashboard">
-    <h2>Analytics Dashboard</h2>
-    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
-    <div *ngIf="analyticsData">
-      <!-- You can integrate chart components here (e.g., using ng2-charts) -->
-      <pre>{{ analyticsData | json }}</pre>
+  <div class="overview-section">
+    <h2 class="page-title">
+      <i class="fas fa-clipboard-list"></i>Analytics Dashboard
+    </h2>
+    <div class="header-bar"></div>
+    <div class="metrics-summary">
+      <div class="metric-card">
+        <h3>Total Applications</h3>
+        <p class="metric-value">{{ animatedTotal }}</p>
+      </div>
+      <div class="metric-card">
+        <h3>Status Distribution</h3>
+        <canvas #statusDistributionChart></canvas>
+      </div>
     </div>
   </div>
-  
+  <div class="trends-section">
+    <h3>Status Transitions Over Time</h3>
+    <canvas #statusTrendsChart></canvas>
+    <p class="chart-description">Each line represents the number of transitions to a given status on each day.</p>
+  </div>
+  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+</div>

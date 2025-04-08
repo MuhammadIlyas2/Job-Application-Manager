@@ -1,0 +1,31 @@
+.feedback-insights {
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    max-width: 800px;
+    margin: 20px auto;
+  }
+  
+  .feedback-insights h2,
+  .feedback-insights h3 {
+    color: #6C63FF;
+  }
+  
+  .feedback-counts,
+  .top-strengths,
+  .top-improvements {
+    margin-bottom: 20px;
+  }
+  
+  .feedback-counts div,
+  .top-strengths div,
+  .top-improvements div {
+    margin-bottom: 8px;
+  }
+  
+  .error {
+    color: #dc3545;
+    margin-top: 15px;
+  }
+  

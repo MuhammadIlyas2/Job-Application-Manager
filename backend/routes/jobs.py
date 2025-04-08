@@ -392,6 +392,8 @@ def update_job(job_id):
         data = request.get_json()
         if 'job_title' not in data or 'company' not in data:
             return jsonify({"message": "Missing required fields"}), 400
+
+        # Check job ownership
         job_check_query = text("SELECT user_id FROM job_application WHERE id = :job_id")
         row = db.session.execute(job_check_query, {"job_id": job_id}).fetchone()
         if not row:
@@ -400,13 +402,15 @@ def update_job(job_id):
         if db_user_id != current_user_id:
             return jsonify({"message": "Unauthorized"}), 403
 
+        # Parse applied_date
         applied_date = None
         if data.get('applied_date'):
             try:
                 applied_date = datetime.strptime(data['applied_date'], "%Y-%m-%d").date()
             except Exception as e:
                 return jsonify({"message": "Invalid applied_date format"}), 400
-        
+
+        # Update the job_application record
         update_query = text("""
             UPDATE job_application
             SET job_title = :job_title,
@@ -428,11 +432,8 @@ def update_job(job_id):
         })
         db.session.commit()
 
-        # Update status history:
-        # Delete existing history records for this job
-        db.session.execute(text("DELETE FROM job_status_history WHERE job_id = :job_id"), {"job_id": job_id})
-        db.session.commit()
-        # Reinsert new history rows for statuses other than "applied"
+        # Instead of deleting existing history, we now insert new status history rows.
+        # (This way, historical changes accumulate over time.)
         additional_statuses = [
             ('interview', data.get('interview_date')),
             ('offer', data.get('offer_date')),
@@ -447,11 +448,12 @@ def update_job(job_id):
                 """), {"job_id": job_id, "status": status, "status_date": date_val})
         db.session.commit()
 
-        return jsonify({"message": "Job updated successfully by update job"}), 200
+        return jsonify({"message": "Job updated successfully"}), 200
     except Exception as e:
         db.session.rollback()
         print(f"❌ ERROR in update_job: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
 
 @jobs_bp.route('/<int:job_id>/recommended-questions', methods=['GET'])
 @jwt_required()
