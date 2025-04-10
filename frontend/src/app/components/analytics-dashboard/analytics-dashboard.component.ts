@@ -1,10 +1,15 @@
+// analytics-dashboard.component.ts
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { AnalyticsService } from '../../services/analytics.service';
 import { Chart, registerables } from 'chart.js';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-analytics-dashboard',
+  standalone: true,
+  imports: [CommonModule, RouterLink],
   templateUrl: './analytics-dashboard.component.html',
   styleUrls: ['./analytics-dashboard.component.css']
 })
@@ -12,9 +17,11 @@ export class AnalyticsDashboardComponent implements OnInit {
   overview: any = {};
   statusTrends: any[] = [];
   errorMessage: string = '';
-  
-  // New property for animated total
-  animatedTotal: number = 0;
+
+  // Animated metric value (used for the card)
+  animatedMetric: number = 0;
+  // Which metric is selected; 'total' (default) or 'active'
+  selectedMetric: 'total' | 'active' = 'total';
 
   @ViewChild('statusDistributionChart') statusDistributionChartRef!: ElementRef;
   @ViewChild('statusTrendsChart') statusTrendsChartRef!: ElementRef;
@@ -25,14 +32,13 @@ export class AnalyticsDashboardComponent implements OnInit {
   constructor(private analyticsService: AnalyticsService) {}
 
   ngOnInit(): void {
-    // Load overall metrics and animate the total applications count.
+    // Load overall metrics and animate the metric value based on selectedMetric.
     this.analyticsService.getOverview().subscribe({
       next: res => {
         this.overview = res;
-        this.animateTotalApplications(this.overview.total_applications, 2000); // 2-second animation
-        setTimeout(() => {
-          this.renderStatusDistributionChart();
-        }, 0);
+        // Animate from 0 to the current metric value (total by default)
+        this.animateMetricValue(this.getCurrentMetricValue(), 2000);
+        setTimeout(() => this.renderStatusDistributionChart(), 0);
       },
       error: err => {
         this.errorMessage = 'Failed to load overview metrics';
@@ -40,13 +46,11 @@ export class AnalyticsDashboardComponent implements OnInit {
       }
     });
 
-    // Load status trends and render the trends chart.
+    // Load status trends and render them.
     this.analyticsService.getStatusTrends().subscribe({
       next: res => {
         this.statusTrends = res;
-        setTimeout(() => {
-          this.renderStatusTrendsChart();
-        }, 0);
+        setTimeout(() => this.renderStatusTrendsChart(), 0);
       },
       error: err => {
         this.errorMessage = 'Failed to load status trends';
@@ -55,7 +59,20 @@ export class AnalyticsDashboardComponent implements OnInit {
     });
   }
 
-  animateTotalApplications(target: number, duration: number): void {
+  // Returns the target metric value based on the selection.
+  // For total, use total_applications; for active, sum up those in 'applied', 'interview' and 'offer'.
+  getCurrentMetricValue(): number {
+    if (this.selectedMetric === 'total') {
+      return this.overview.total_applications || 0;
+    } else {
+      const counts = this.overview.status_counts || {};
+      const active = (counts['applied'] || 0) + (counts['interview'] || 0) + (counts['offer'] || 0);
+      return active;
+    }
+  }
+
+  // Animate the displayed metric value from 0 up to the target over the given duration (ms)
+  animateMetricValue(target: number, duration: number): void {
     let start = 0;
     const stepTime = 50; // update every 50ms
     const steps = duration / stepTime;
@@ -67,8 +84,17 @@ export class AnalyticsDashboardComponent implements OnInit {
         start = target;
         clearInterval(interval);
       }
-      this.animatedTotal = Math.floor(start);
+      this.animatedMetric = Math.floor(start);
     }, stepTime);
+  }
+
+  // Called when the user switches which metric to display.
+  onMetricChange(metric: 'total' | 'active'): void {
+    if (this.selectedMetric !== metric) {
+      this.selectedMetric = metric;
+      // Animate the new value from 0 to the target value.
+      this.animateMetricValue(this.getCurrentMetricValue(), 2000);
+    }
   }
 
   renderStatusDistributionChart(): void {
@@ -83,7 +109,7 @@ export class AnalyticsDashboardComponent implements OnInit {
         labels: labels,
         datasets: [{
           data: data,
-          backgroundColor: ['lightblue','orange','lightgreen','green','red']
+          backgroundColor: ['lightblue', 'orange', 'lightgreen', 'green', 'red']
         }]
       },
       options: {
@@ -99,6 +125,7 @@ export class AnalyticsDashboardComponent implements OnInit {
     if (this.statusTrendsChart) {
       this.statusTrendsChart.destroy();
     }
+    // Group trends by status; for each status, build an array of { date, count }
     const statusMap: { [key: string]: { date: string, count: number }[] } = {};
     this.statusTrends.forEach(trend => {
       if (!statusMap[trend.status]) {
@@ -109,11 +136,13 @@ export class AnalyticsDashboardComponent implements OnInit {
         count: trend.count
       });
     });
+    // Build a sorted set of all dates
     const allDatesSet = new Set<string>();
     Object.values(statusMap).forEach(arr => {
       arr.forEach(item => allDatesSet.add(item.date));
     });
     const allDates = Array.from(allDatesSet).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    // Build datasets: one per status
     const datasets = Object.keys(statusMap).map(status => {
       const data = allDates.map(date => {
         const item = statusMap[status].find(d => d.date === date);

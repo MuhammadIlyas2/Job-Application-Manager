@@ -1,24 +1,54 @@
 <div class="analytics-dashboard">
-  <div class="overview-section">
-    <h2 class="page-title">
-      <i class="fas fa-clipboard-list"></i>Analytics Dashboard
-    </h2>
-    <div class="header-bar"></div>
-    <div class="metrics-summary">
-      <div class="metric-card">
-        <h3>Total Applications</h3>
-        <p class="metric-value">{{ animatedTotal }}</p>
-      </div>
-      <div class="metric-card">
-        <h3>Status Distribution</h3>
-        <canvas #statusDistributionChart></canvas>
-      </div>
+  <!-- Page Title -->
+  <h2 class="page-title">
+    <i class="fas fa-clipboard-list"></i> Analytics Dashboard
+  </h2>
+
+  <!-- Metric Selector Bar inside the container -->
+  <div class="metric-selector">
+    <button 
+      [class.active]="selectedMetric === 'total'" 
+      (click)="onMetricChange('total')">
+      Total Applications
+    </button>
+    <button 
+      [class.active]="selectedMetric === 'active'" 
+      (click)="onMetricChange('active')">
+      Active Applications
+    </button>
+  </div>
+
+  <!-- First Row: Big Metric + Pie Chart -->
+  <div class="metrics-row">
+    <!-- Left: Big Metric Card (fill available height) -->
+    <div class="left-card">
+      <!--<h3>{{ selectedMetric === 'total' ? 'Total Applications' : 'Active Applications' }}</h3>-->
+      <p class="metric-value">{{ animatedMetric }}</p>
+    </div>
+    
+    <!-- Right: Status Distribution (Pie Chart) -->
+    <div class="right-chart">
+      <h3>Status Distribution</h3>
+      <canvas #statusDistributionChart></canvas>
     </div>
   </div>
-  <div class="trends-section">
+
+  <!-- Second Row: Status Trends (Line Chart) -->
+  <div class="linechart-row">
     <h3>Status Transitions Over Time</h3>
     <canvas #statusTrendsChart></canvas>
-    <p class="chart-description">Each line represents the number of transitions to a given status on each day.</p>
+    <p class="chart-description">
+      Each line represents the number of transitions to a given status on each day.
+    </p>
   </div>
+
+  <!-- Feedback Analysis Button -->
+  <div class="feedback-analysis-button-container">
+    <button class="btn-primary feedback-analysis-btn" routerLink="/insights">
+      <i class="fas fa-chart-bar"></i> Feedback Analysis
+    </button>
+  </div>
+
+  <!-- Error Message -->
   <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
 </div>

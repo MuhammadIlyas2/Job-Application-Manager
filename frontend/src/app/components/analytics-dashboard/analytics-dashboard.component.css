@@ -1,38 +1,27 @@
 .analytics-dashboard {
-    padding: 20px;
-    background: #fff;
-    border-radius: 8px;
     max-width: 1200px;
     margin: 20px auto;
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
   
-  .overview-section {
-    margin-bottom: 30px;
-  }
-
-  h2{
-    color: #6C63FF;
-  }
-
-  /* 🌟 Simpler Page Title (No Full-Width Bar) */
-.page-title {
+  /* Page Title styling remains unchanged */
+  .page-title {
     color: #6C63FF;
     font-size: 28px;
     font-weight: 600;
     text-align: center;
-    margin: 0 0 20px 0;
-    display: inline-block;
+    margin-bottom: 10px; /* Reduced bottom margin */
     position: relative;
   }
   
-  /* Optional icon spacing if you keep the icon */
   .page-title i {
     margin-right: 8px;
     font-size: 1.2em;
   }
   
-  /* Small decorative underline */
   .page-title::after {
     content: "";
     display: block;
@@ -42,65 +31,95 @@
     margin: 10px auto 0;
     border-radius: 2px;
   }
-
-  .header-bar {
+  
+  /* New Metric Selector Bar */
+  .metric-selector {
     display: flex;
-    flex-wrap: wrap;       /* allow wrapping on smaller screens */
-    align-items: flex-end; /* align items along the baseline */
-    justify-content: space-between;
-    margin-bottom: 15px;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px; /* Space below the selector bar */
+    position: relative;
+    left: -300px;
+    bottom: -90px
   }
-
-  h3 {
+  
+  .metric-selector button {
+    background: transparent;
+    border: 2px solid #6C63FF;
     color: #6C63FF;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
   }
   
-  /* The container that holds multiple metric cards */
-.metrics-summary {
+  .metric-selector button.active,
+  .metric-selector button:hover {
+    background: #6C63FF;
+    color: #fff;
+  }
+  
+  /* Two-Column Row for Metrics and Pie Chart */
+  .metrics-row {
     display: flex;
-    gap: 1rem;
-    /* Optionally, make them fill horizontally */
-    justify-content: space-evenly;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 30px;
   }
   
-  /* Each card with a background and padding */
-  .metric-card {
+  /* Left Card: Big Metric */
+  .left-card {
     flex: 1;
-    background: #f9f9f9; /* or any background color you like */
+    background: #f9f9f9;
     border-radius: 8px;
-    padding: 1rem;
+    padding: 20px;
     text-align: center;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   }
   
-  /* Title styling for the small heading in the card */
-  .metric-card h3 {
-    margin-bottom: 0.5rem;
+  .left-card h3 {
+    margin-bottom: 10px;
     color: #555;
     font-size: 1.2rem;
   }
   
   .metric-value {
-    font-size: 8rem;         /* Increase font size as needed */
-    font-weight: 700;        /* Bold text */
-    color: #6C63FF;             /* Adjust color if needed */
-    display: flex;           /* Use flexbox for centering */
-    justify-content: center; /* Center horizontally */
-    align-items: center;     /* Center vertically */
-    text-align: center;      /* Ensure text is centered */
-    width: 100%;             /* Take full available width */
-    height: 100%;            /* Take full available height of its container */
-    margin: 0;               /* Remove default margin */
-
+    font-size: 6rem;  /* Adjust font size as needed (set 65% of container, etc.) */
+    font-weight: bold;
+    color: #6C63FF;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
   }
   
-  .trends-section {
+  /* Right Card: Pie Chart */
+  .right-chart {
+    flex: 1;
+    background: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  
+  .right-chart h3 {
+    margin-bottom: 10px;
+    color: #555;
+    font-size: 1.2rem;
+  }
+  
+  /* Line Chart Section */
+  .linechart-row {
     margin-top: 30px;
   }
   
-  canvas {
-    max-width: 100%;
-    height: auto;
+  .linechart-row h3 {
+    text-align: center;
+    color: #6C63FF;
+    margin-bottom: 10px;
   }
   
   .chart-description {
@@ -109,7 +128,33 @@
     text-align: center;
     margin-top: 10px;
   }
+
+  .feedback-analysis-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;  /* Adjust vertical spacing as needed */
+  }
   
+  .feedback-analysis-btn {
+    background: #6C63FF;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .feedback-analysis-btn:hover {
+    background: #5A54D7;
+    transform: translateY(-1px);
+  }
+  
+  /* Error message */
   .error {
     color: red;
     text-align: center;
