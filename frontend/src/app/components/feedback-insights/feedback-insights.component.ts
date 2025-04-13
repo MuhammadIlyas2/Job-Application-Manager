@@ -1,11 +1,22 @@
-// feedback-insights.component.ts
+// src/app/components/feedback-insights/feedback-insights.component.ts
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { AnalyticsService } from '../../services/analytics.service';
-import { Chart, registerables } from 'chart.js';
+import { Chart, registerables, ChartConfiguration } from 'chart.js';
 import { saveAs } from 'file-saver';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 Chart.register(...registerables);
+
+// Optional: Define interfaces for strengths and improvements for better type safety.
+interface TopStrength {
+  strength: string;
+  count: number;
+}
+
+interface TopImprovement {
+  improvement: string;
+  count: number;
+}
 
 @Component({
   selector: 'app-feedback-insights',
@@ -34,7 +45,7 @@ export class FeedbackInsightsComponent implements OnInit {
 
   loadFeedbackInsights(): void {
     this.analyticsService.getFeedbackInsights().subscribe({
-      next: (res) => {
+      next: (res: any) => {
         this.feedbackInsights = res;
         // Render charts after a brief delay to ensure the view is ready.
         setTimeout(() => {
@@ -43,7 +54,7 @@ export class FeedbackInsightsComponent implements OnInit {
           this.renderImprovementsChart();
         }, 0);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.errorMessage = 'Failed to load feedback insights';
         console.error(err);
       }
@@ -54,13 +65,13 @@ export class FeedbackInsightsComponent implements OnInit {
     if (this.categoryChart) {
       this.categoryChart.destroy();
     }
-    // Get the feedback counts object
-    const counts = this.feedbackInsights.feedback_counts || {};
-    // Get category labels (e.g., positive, negative, neutral)
-    const labels = Object.keys(counts);
-    const data = labels.map(key => counts[key]);
-    // Map each label to a color: positive -> green, negative -> red, neutral -> grey
-    const backgroundColors = labels.map(label => {
+    // Get the feedback counts object; include all categories.
+    const counts: { [key: string]: number } = this.feedbackInsights.feedback_counts || {};
+    const labels: string[] = Object.keys(counts);
+    const data: number[] = labels.map((key: string) => counts[key]);
+
+    // Map each label to a color.
+    const backgroundColors: string[] = labels.map((label: string) => {
       const lower = label.toLowerCase();
       if (lower === 'positive') {
         return 'green';
@@ -69,10 +80,11 @@ export class FeedbackInsightsComponent implements OnInit {
       } else if (lower === 'neutral') {
         return 'grey';
       } else {
-        return 'blue'; // default color
+        return 'blue'; // default for any other category
       }
     });
-    this.categoryChart = new Chart(this.categoryChartRef.nativeElement, {
+
+    const config: ChartConfiguration = {
       type: 'pie',
       data: {
         labels: labels,
@@ -84,20 +96,30 @@ export class FeedbackInsightsComponent implements OnInit {
       options: {
         plugins: {
           legend: { position: 'bottom' },
-          title: { display: true, text: 'Feedback Category Breakdown' }
+          title: { display: false } // Removed inbuilt title
         }
       }
-    });
+    };
+
+    this.categoryChart = new Chart(this.categoryChartRef.nativeElement, config);
   }
 
   renderStrengthsChart(): void {
+    // If there are no top strengths, exit.
     if (!this.feedbackInsights.top_strengths) return;
     if (this.strengthsChart) {
       this.strengthsChart.destroy();
     }
-    const labels = this.feedbackInsights.top_strengths.map((item: any) => item.strength);
-    const data = this.feedbackInsights.top_strengths.map((item: any) => item.count);
-    this.strengthsChart = new Chart(this.strengthsChartRef.nativeElement, {
+    // Cast the top_strengths array to our defined interface.
+    const strengthsArray = this.feedbackInsights.top_strengths as TopStrength[];
+    // Sort alphabetically (case-insensitive) by strength.
+    const sortedStrengths = strengthsArray.sort((a: TopStrength, b: TopStrength) =>
+      a.strength.toLowerCase().localeCompare(b.strength.toLowerCase())
+    );
+    const labels: string[] = sortedStrengths.map((item: TopStrength) => item.strength);
+    const data: number[] = sortedStrengths.map((item: TopStrength) => item.count);
+
+    const config: ChartConfiguration = {
       type: 'bar',
       data: {
         labels: labels,
@@ -110,13 +132,13 @@ export class FeedbackInsightsComponent implements OnInit {
       options: {
         plugins: {
           legend: { display: false },
-          title: { display: true, text: 'Top Strengths' }
+          title: { display: false } // Removed inbuilt title
         },
-        scales: {
-          y: { beginAtZero: true }
-        }
+        scales: { y: { beginAtZero: true } }
       }
-    });
+    };
+
+    this.strengthsChart = new Chart(this.strengthsChartRef.nativeElement, config);
   }
 
   renderImprovementsChart(): void {
@@ -124,9 +146,11 @@ export class FeedbackInsightsComponent implements OnInit {
     if (this.improvementsChart) {
       this.improvementsChart.destroy();
     }
-    const labels = this.feedbackInsights.top_improvements.map((item: any) => item.improvement);
-    const data = this.feedbackInsights.top_improvements.map((item: any) => item.count);
-    this.improvementsChart = new Chart(this.improvementsChartRef.nativeElement, {
+    const improvementsArray = this.feedbackInsights.top_improvements as TopImprovement[];
+    const labels: string[] = improvementsArray.map((item: TopImprovement) => item.improvement);
+    const data: number[] = improvementsArray.map((item: TopImprovement) => item.count);
+
+    const config: ChartConfiguration = {
       type: 'bar',
       data: {
         labels: labels,
@@ -139,17 +163,17 @@ export class FeedbackInsightsComponent implements OnInit {
       options: {
         plugins: {
           legend: { display: false },
-          title: { display: true, text: 'Top Improvements' }
+          title: { display: false } // Removed inbuilt title
         },
-        scales: {
-          y: { beginAtZero: true }
-        }
+        scales: { y: { beginAtZero: true } }
       }
-    });
+    };
+
+    this.improvementsChart = new Chart(this.improvementsChartRef.nativeElement, config);
   }
 
   exportData(): void {
-    // Example export function to CSV.
+    // Export detailed feedback to CSV.
     const csvRows: string[] = [];
     const headers = ['Job Title', 'Company', 'Status', 'Feedback Summary', 'Detailed Feedback', 'Created At'];
     csvRows.push(headers.join(','));

@@ -7,7 +7,8 @@
     Please fill out the details below to track your application.
   </p>
 
-  <form (ngSubmit)="submitForm()">
+  <!-- Bind ngSubmit with the form reference -->
+  <form (ngSubmit)="submitForm(jobForm)" #jobForm="ngForm">
     <!-- Hidden field for user ID -->
     <input type="hidden" [(ngModel)]="job.user_id" name="user_id" />
 
@@ -20,8 +21,12 @@
           [(ngModel)]="job.job_title"
           name="job_title"
           required
-          placeholder="e.g., Software Engineer"
+          placeholder="e.g., Software Engineer, Frontend Developer"
         />
+        <!-- Show error if field is touched or form submitted and invalid -->
+        <div *ngIf="(jobForm.controls['job_title']?.touched || jobForm.submitted) && jobForm.controls['job_title']?.invalid" class="error-message">
+          Job Title is required.
+        </div>
       </div>
       <div class="form-group">
         <label class="required">Company</label>
@@ -30,21 +35,27 @@
           [(ngModel)]="job.company"
           name="company"
           required
-          placeholder="e.g., TechCorp Inc."
+          placeholder="e.g., TechCorp Inc., Innovative Solutions Ltd."
         />
+        <div *ngIf="(jobForm.controls['company']?.touched || jobForm.submitted) && jobForm.controls['company']?.invalid" class="error-message">
+          Company is required.
+        </div>
       </div>
     </div>
 
     <!-- Row 2: Role Category & Status -->
     <div class="form-row">
       <div class="form-group">
-        <label>Role Category</label>
-        <select [(ngModel)]="job.role_category" name="role_category">
+        <label class="required">Role Category</label>
+        <select [(ngModel)]="job.role_category" name="role_category" required>
           <option value="">Select Category</option>
           <option *ngFor="let role of roles" [value]="role.name">
             {{ role.name }}
           </option>
         </select>
+        <div *ngIf="(jobForm.controls['role_category']?.touched || jobForm.submitted) && jobForm.controls['role_category']?.invalid" class="error-message">
+          Role Category is required.
+        </div>
       </div>
       <div class="form-group">
         <label class="required">Status</label>
@@ -58,107 +69,109 @@
             {{ status | titlecase }}
           </option>
         </select>
+        <div *ngIf="(jobForm.controls['status']?.touched || jobForm.submitted) && jobForm.controls['status']?.invalid" class="error-message">
+          Status is required.
+        </div>
       </div>
     </div>
 
     <!-- Row: Date Inputs & Feedback Summary -->
-<div class="form-row">
-  <div class="form-group date-group">
-    <!-- For Applied: 1 input -->
-    <ng-container *ngIf="job.status === 'applied'">
-      <label>Applied Date</label>
-      <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
-    </ng-container>
-    <!-- For Interview: 2 inputs -->
-    <ng-container *ngIf="job.status === 'interview'">
-      <div class="date-row">
-        <div class="date-col">
+    <div class="form-row">
+      <div class="form-group date-group">
+        <!-- For Applied: 1 input -->
+        <ng-container *ngIf="job.status === 'applied'">
           <label>Applied Date</label>
           <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
-        </div>
-        <div class="date-col">
-          <label>Interview Date</label>
-          <input type="date" [(ngModel)]="job.interview_date" name="interview_date" />
-        </div>
+        </ng-container>
+        <!-- For Interview: 2 inputs -->
+        <ng-container *ngIf="job.status === 'interview'">
+          <div class="date-row">
+            <div class="date-col">
+              <label>Applied Date</label>
+              <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
+            </div>
+            <div class="date-col">
+              <label>Interview Date</label>
+              <input type="date" [(ngModel)]="job.interview_date" name="interview_date" />
+            </div>
+          </div>
+        </ng-container>
+        <!-- For Offer: 3 inputs -->
+        <ng-container *ngIf="job.status === 'offer'">
+          <div class="date-row">
+            <div class="date-col">
+              <label>Applied Date</label>
+              <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
+            </div>
+            <div class="date-col">
+              <label>Interview Date</label>
+              <input type="date" [(ngModel)]="job.interview_date" name="interview_date" />
+            </div>
+            <div class="date-col">
+              <label>Offer Date</label>
+              <input type="date" [(ngModel)]="job.offer_date" name="offer_date" />
+            </div>
+          </div>
+        </ng-container>
+        <!-- For Accepted: 4 inputs -->
+        <ng-container *ngIf="job.status === 'accepted'">
+          <div class="date-row">
+            <div class="date-col">
+              <label>Applied Date</label>
+              <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
+            </div>
+            <div class="date-col">
+              <label>Interview Date</label>
+              <input type="date" [(ngModel)]="job.interview_date" name="interview_date" />
+            </div>
+            <div class="date-col">
+              <label>Offer Date</label>
+              <input type="date" [(ngModel)]="job.offer_date" name="offer_date" />
+            </div>
+            <div class="date-col">
+              <label>Accepted Date</label>
+              <input type="date" [(ngModel)]="job.accepted_date" name="accepted_date" />
+            </div>
+          </div>
+        </ng-container>
+        <!-- For Rejected: 4 inputs -->
+        <ng-container *ngIf="job.status === 'rejected'">
+          <div class="date-row">
+            <div class="date-col">
+              <label>Applied Date</label>
+              <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
+            </div>
+            <div class="date-col">
+              <label>Interview Date</label>
+              <input type="date" [(ngModel)]="job.interview_date" name="interview_date" />
+            </div>
+            <div class="date-col">
+              <label>Offer Date</label>
+              <input type="date" [(ngModel)]="job.offer_date" name="offer_date" />
+            </div>
+            <div class="date-col">
+              <label>Rejected Date</label>
+              <input type="date" [(ngModel)]="job.rejected_date" name="rejected_date" />
+            </div>
+          </div>
+        </ng-container>
       </div>
-    </ng-container>
-    <!-- For Offer: 3 inputs -->
-    <ng-container *ngIf="job.status === 'offer'">
-      <div class="date-row">
-        <div class="date-col">
-          <label>Applied Date</label>
-          <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
-        </div>
-        <div class="date-col">
-          <label>Interview Date</label>
-          <input type="date" [(ngModel)]="job.interview_date" name="interview_date" />
-        </div>
-        <div class="date-col">
-          <label>Offer Date</label>
-          <input type="date" [(ngModel)]="job.offer_date" name="offer_date" />
-        </div>
+      <div class="form-group">
+        <label>Feedback Summary (Max 50 chars)</label>
+        <input
+          type="text"
+          [(ngModel)]="job.feedbackSummary"
+          name="feedbackSummary"
+          maxlength="50"
+          placeholder="Enter a brief feedback summary (50 characters max)"
+        />
       </div>
-    </ng-container>
-    <!-- For Accepted: 4 inputs -->
-    <ng-container *ngIf="job.status === 'accepted'">
-      <div class="date-row">
-        <div class="date-col">
-          <label>Applied Date</label>
-          <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
-        </div>
-        <div class="date-col">
-          <label>Interview Date</label>
-          <input type="date" [(ngModel)]="job.interview_date" name="interview_date" />
-        </div>
-        <div class="date-col">
-          <label>Offer Date</label>
-          <input type="date" [(ngModel)]="job.offer_date" name="offer_date" />
-        </div>
-        <div class="date-col">
-          <label>Accepted Date</label>
-          <input type="date" [(ngModel)]="job.accepted_date" name="accepted_date" />
-        </div>
-      </div>
-    </ng-container>
-    <!-- For Rejected: 4 inputs -->
-    <ng-container *ngIf="job.status === 'rejected'">
-      <div class="date-row">
-        <div class="date-col">
-          <label>Applied Date</label>
-          <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
-        </div>
-        <div class="date-col">
-          <label>Interview Date</label>
-          <input type="date" [(ngModel)]="job.interview_date" name="interview_date" />
-        </div>
-        <div class="date-col">
-          <label>Offer Date</label>
-          <input type="date" [(ngModel)]="job.offer_date" name="offer_date" />
-        </div>
-        <div class="date-col">
-          <label>Rejected Date</label>
-          <input type="date" [(ngModel)]="job.rejected_date" name="rejected_date" />
-        </div>
-      </div>
-    </ng-container>
-  </div>
-  <div class="form-group">
-    <label>Feedback Summary (Max 50 chars)</label>
-    <input type="text" [(ngModel)]="job.feedbackSummary" name="feedbackSummary" maxlength="50" placeholder="Brief summary of feedback" default="No feedback yet" />
-  </div>
-</div>
-
+    </div>
 
     <!-- Single Column: Notes -->
     <div class="form-group">
       <label>
-        {{
-          job.status === 'offer' ||
-          job.status === 'accepted' ||
-          job.status === 'rejected'
-            ? 'General Notes'
-            : 'Notes'
-        }}
+        {{ job.status === 'offer' || job.status === 'accepted' || job.status === 'rejected' ? 'General Notes' : 'Notes' }}
       </label>
       <textarea
         [(ngModel)]="job.general_notes"
@@ -171,7 +184,7 @@
     <!-- Detailed Feedback Section (for rejected/accepted/offer) -->
     <div *ngIf="job.status === 'rejected' || job.status === 'accepted' || job.status === 'offer'" class="feedback-section">
       <h3>Detailed Feedback</h3>
-    
+
       <!-- Feedback Category -->
       <div class="form-group" *ngIf="filteredCategories.length > 0">
         <label>Feedback Category</label>
@@ -180,85 +193,104 @@
           <option *ngFor="let cat of filteredCategories" [value]="cat.id">{{ cat.name }}</option>
         </select>
       </div>
-    
+
       <!-- Detailed Feedback Notes -->
       <div class="form-group">
         <label>
           Detailed Feedback Notes
           <i class="fas fa-question-circle info-icon" title="Provide additional details about the feedback."></i>
         </label>
-        <textarea [(ngModel)]="job.feedback.detailed_feedback" name="detailedFeedback" rows="3" placeholder="Detailed notes"></textarea>
+        <textarea
+          [(ngModel)]="job.feedback.detailed_feedback"
+          name="detailedFeedback"
+          rows="3"
+          placeholder="Detailed notes"
+        ></textarea>
       </div>
-    
-      <!-- Key Improvements (Chain-based) (Only for Rejected) -->
+
+      <!-- Key Improvements (Only for Rejected) -->
       <div class="form-group" *ngIf="job.status === 'rejected'">
         <label>Key Improvements</label>
         <div class="strengths-improvements-container">
           <div class="priority-strength-improvement">
-            <input type="text" [(ngModel)]="job.feedback.priority_improvement" name="priorityImprovement" placeholder="Priority improvement" />
+            <input
+              type="text"
+              [(ngModel)]="job.feedback.priority_improvement"
+              name="priorityImprovement"
+              placeholder="Priority improvement"
+            />
           </div>
-          <span class="chain-add-icon" (click)="addAdditionalImprovement()" title="Add additional improvement">+</span>
+          <span class="chain-add-icon" (click)="addAdditionalImprovement()" title="Add additional improvement">
+            +
+          </span>
         </div>
         <div class="chain-strengths-improvements" *ngIf="job.feedback.additional_improvements.length > 0">
           <div class="chain-strength-improvement-row" *ngFor="let improvement of job.feedback.additional_improvements; let i = index; trackBy: trackByIndex">
-            <input type="text" [(ngModel)]="job.feedback.additional_improvements[i]" name="additionalImprovement{{ i }}" placeholder="Additional improvement" />
-            <span class="chain-add-icon" (click)="addAdditionalImprovement()" title="Add another improvement">+</span>
-            <button type="button" class="chain-remove-icon" (click)="removeAdditionalImprovement(i)" title="Remove improvement">×</button>
+            <input
+              type="text"
+              [(ngModel)]="job.feedback.additional_improvements[i]"
+              name="additionalImprovement{{ i }}"
+              placeholder="Additional improvement"
+            />
+            <span class="chain-add-icon" (click)="addAdditionalImprovement()" title="Add another improvement">
+              +
+            </span>
+            <button type="button" class="chain-remove-icon" (click)="removeAdditionalImprovement(i)" title="Remove improvement">
+              ×
+            </button>
           </div>
         </div>
       </div>
-    
-      <!-- Key Strengths (Chain-based) (Only for Accepted/Offer) -->
+
+      <!-- Key Strengths (Only for Accepted/Offer) -->
       <div class="form-group" *ngIf="job.status === 'accepted' || job.status === 'offer'">
         <label>Key Strengths</label>
         <div class="strengths-improvements-container">
           <div class="priority-strength-improvement">
-            <input type="text" [(ngModel)]="job.feedback.priority_strength" name="priorityStrength" placeholder="Priority strength" />
+            <input
+              type="text"
+              [(ngModel)]="job.feedback.priority_strength"
+              name="priorityStrength"
+              placeholder="Priority strength"
+            />
           </div>
-          <span class="chain-add-icon" (click)="addAdditionalStrength()" title="Add additional strength">+</span>
+          <span class="chain-add-icon" (click)="addAdditionalStrength()" title="Add additional strength">
+            +
+          </span>
         </div>
         <div class="chain-strengths-improvements" *ngIf="job.feedback.additional_strengths.length > 0">
           <div class="chain-strength-improvement-row" *ngFor="let strength of job.feedback.additional_strengths; let i = index; trackBy: trackByIndex">
-            <input type="text" [(ngModel)]="job.feedback.additional_strengths[i]" name="additionalStrength{{ i }}" placeholder="Additional strength" />
-            <span class="chain-add-icon" (click)="addAdditionalStrength()" title="Add another strength">+</span>
-            <button type="button" class="chain-remove-icon" (click)="removeAdditionalStrength(i)" title="Remove strength">×</button>
+            <input
+              type="text"
+              [(ngModel)]="job.feedback.additional_strengths[i]"
+              name="additionalStrength{{ i }}"
+              placeholder="Additional strength"
+            />
+            <span class="chain-add-icon" (click)="addAdditionalStrength()" title="Add another strength">
+              +
+            </span>
+            <button type="button" class="chain-remove-icon" (click)="removeAdditionalStrength(i)" title="Remove strength">
+              ×
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Button to toggle Interview Q&A section (only if interview/rejected/accepted/offer) -->
-    <div
-      *ngIf="
-        job.status === 'rejected' ||
-        job.status === 'accepted' ||
-        job.status === 'offer' ||
-        job.status === 'interview'
-      "
-    >
+    <!-- Button to toggle Interview Q&A section (if applicable) -->
+    <div *ngIf="job.status === 'rejected' || job.status === 'accepted' || job.status === 'offer' || job.status === 'interview'">
       <div class="form-group">
-        <button
-          type="button"
-          class="secondary-button"
-          (click)="toggleInterviewQA()"
-        >
+        <button type="button" class="secondary-button" (click)="toggleInterviewQA()">
           {{ showInterviewQASection ? 'Hide Interview Q&A' : 'Add Interview Q&A' }}
         </button>
       </div>
     </div>
 
     <!-- Interview Q&A Section -->
-    <div
-      *ngIf="showInterviewQASection"
-      class="interview-qa-section"
-    >
+    <div *ngIf="showInterviewQASection" class="interview-qa-section">
       <h3>Interview Q&A</h3>
-      <!-- List of Q&A items -->
       <div class="selected-qa" *ngIf="selectedQA.length > 0">
-        <div
-          *ngFor="let qa of selectedQA; let i = index"
-          class="qa-entry"
-        >
+        <div *ngFor="let qa of selectedQA; let i = index" class="qa-entry">
           <p><strong>Q{{ i + 1 }}:</strong></p>
           <div class="question-input-wrapper">
             <input
@@ -269,15 +301,8 @@
               placeholder="Interview question"
               (input)="onQAQuestionInputChange($event, i)"
             />
-            <ul
-              class="suggestions"
-              *ngIf="qaSuggestions[i] && qaSuggestions[i].length > 0"
-            >
-              <li
-                class="suggestion-item"
-                *ngFor="let suggestion of qaSuggestions[i]"
-                (click)="selectRecommendedQA(suggestion, i)"
-              >
+            <ul class="suggestions" *ngIf="qaSuggestions[i] && qaSuggestions[i].length > 0">
+              <li class="suggestion-item" *ngFor="let suggestion of qaSuggestions[i]" (click)="selectRecommendedQA(suggestion, i)">
                 {{ suggestion.text }}
               </li>
             </ul>
@@ -289,22 +314,13 @@
             name="answer{{ i }}"
             placeholder="Your answer..."
           ></textarea>
-          <button
-            type="button"
-            class="danger-button"
-            (click)="removeInterviewQA(i)"
-          >
+          <button type="button" class="danger-button" (click)="removeInterviewQA(i)">
             Remove Q&A
           </button>
         </div>
       </div>
-      <!-- Button to add a new Q&A entry -->
       <div class="form-group">
-        <button
-          type="button"
-          class="primary-button"
-          (click)="addInterviewQA()"
-        >
+        <button type="button" class="primary-button" (click)="addInterviewQA()">
           Add Another Interview Q&A
         </button>
       </div>
@@ -315,21 +331,14 @@
       <button type="submit" class="primary-button">
         {{ isEditMode ? 'Update Application' : 'Create Application' }}
       </button>
-      <button
-        type="button"
-        (click)="router.navigate(['/jobs'])"
-        class="secondary-button"
-      >
+      <button type="button" (click)="router.navigate(['/jobs'])" class="secondary-button">
         Cancel
       </button>
     </div>
   </form>
 
   <!-- Error Message -->
-  <div
-    *ngIf="errorMessage"
-    class="error-message"
-  >
+  <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
   </div>
 </div>

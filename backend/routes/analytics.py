@@ -1,3 +1,4 @@
+# analytics.py
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from extensions import db
@@ -6,55 +7,6 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func, text
 
 analytics_bp = Blueprint('analytics', __name__)
-
-# --------------------- Utility: Update Feedback Extras ---------------------
-def update_feedback_extras(feedback_id, extras, table_name):
-    """
-    Delete all current rows for the given feedback_id in the specified table,
-    then insert new rows from the extras dict.
-    'extras' is expected to be a dict with keys "priority" (string) and "additional" (list of strings).
-    'table_name' should be either "feedback_strength" or "feedback_improvement".
-    """
-    if table_name == "feedback_strength":
-        column_name = "strength"
-    elif table_name == "feedback_improvement":
-        column_name = "improvement"
-    else:
-        raise ValueError("Invalid table name: must be 'feedback_strength' or 'feedback_improvement'")
-
-    # Delete existing entries for this feedback
-    delete_query = text(f"DELETE FROM {table_name} WHERE feedback_id = :feedback_id")
-    db.session.execute(delete_query, {"feedback_id": feedback_id})
-
-    # Prepare the insert query. 'is_priority' marks the priority row.
-    insert_query = text(f"""
-        INSERT INTO {table_name} (feedback_id, is_priority, {column_name})
-        VALUES (:feedback_id, :is_priority, :value)
-    """)
-
-    # Insert priority item (if provided)
-    if extras.get("priority"):
-        priority_value = extras["priority"].strip()
-        if priority_value:
-            db.session.execute(insert_query, {
-                "feedback_id": feedback_id,
-                "is_priority": 1,
-                "value": priority_value
-            })
-
-    # Insert each additional item (if any)
-    additional = extras.get("additional", [])
-    for s in additional:
-        s = s.strip()
-        if s:
-            db.session.execute(insert_query, {
-                "feedback_id": feedback_id,
-                "is_priority": 0,
-                "value": s
-            })
-
-
-# --------------------- Routes ---------------------
 
 @analytics_bp.route('/dashboard', methods=['GET'])
 @jwt_required()
@@ -65,8 +17,7 @@ def get_dashboard():
       - Breakdown of applications by final status.
     """
     current_user_id = get_jwt_identity()
-
-    total = db.session.query(func.count(JobApplication.id)) \
+    total = db.session.query(func.count(JobApplication.id))\
         .filter(JobApplication.user_id == current_user_id).scalar()
 
     status_counts = db.session.query(
@@ -76,6 +27,8 @@ def get_dashboard():
     ).group_by(JobApplication.status).all()
 
     counts = {status: count for status, count in status_counts}
+    
+    # Debug logging
     print("DEBUG: Dashboard – Total applications:", total)
     print("DEBUG: Dashboard – Status counts:", counts)
 
@@ -83,7 +36,6 @@ def get_dashboard():
         "total_applications": total,
         "status_counts": counts
     }), 200
-
 
 @analytics_bp.route('/status-trends', methods=['GET'])
 @jwt_required()
@@ -94,27 +46,25 @@ def get_status_trends():
     and returns the number of distinct job applications that transitioned on that day.
     """
     current_user_id = get_jwt_identity()
-
     trends = db.session.query(
         JobStatusHistory.status,
         JobStatusHistory.status_date,
         func.count(func.distinct(JobStatusHistory.job_id)).label("count")
-    ).join(JobApplication, JobApplication.id == JobStatusHistory.job_id) \
-     .filter(JobApplication.user_id == current_user_id) \
-     .group_by(JobStatusHistory.status, JobStatusHistory.status_date) \
+    ).join(JobApplication, JobApplication.id == JobStatusHistory.job_id)\
+     .filter(JobApplication.user_id == current_user_id)\
+     .group_by(JobStatusHistory.status, JobStatusHistory.status_date)\
      .order_by(JobStatusHistory.status_date.asc()).all()
 
     trend_list = []
     for status, status_date, count in trends:
-        print(f"DEBUG: Status trend – {status} on {status_date}: {count}")
-        trend_list.append({
+        entry = {
             "status": status,
             "status_date": status_date.isoformat() if status_date else None,
             "count": count
-        })
-
+        }
+        trend_list.append(entry)
+        print(f"DEBUG: Status trend – {status} on {status_date}: {count}")
     return jsonify(trend_list), 200
-
 
 @analytics_bp.route('/feedback-insights', methods=['GET'])
 @jwt_required()
@@ -126,7 +76,7 @@ def get_feedback_insights():
       2. top_strengths: Top 5 strengths aggregated from feedback.
       3. top_improvements: Top 5 improvements aggregated from feedback.
       4. detailed_feedback: A list of detailed feedback entries (only those where the note starts with an alphabet letter).
-      5. recommendations: A simple set of suggestions based on the top improvement.
+      5. recommendations: A set of suggestions based on the top improvement.
     """
     current_user_id = get_jwt_identity()
     
@@ -143,7 +93,7 @@ def get_feedback_insights():
     feedback_counts = {row[0]: row[1] for row in result1}
     print("DEBUG: Feedback counts by category:", feedback_counts)
 
-    # 2. Top strengths aggregated from feedback_strength table
+    # 2. Top strengths (from feedback_strength table)
     query2 = text("""
         SELECT fs.strength, COUNT(*) as count
         FROM feedback_strength fs
@@ -158,7 +108,7 @@ def get_feedback_insights():
     top_strengths = [{"strength": row[0], "count": row[1]} for row in result2]
     print("DEBUG: Top strengths:", top_strengths)
 
-    # 3. Top improvements aggregated from feedback_improvement table
+    # 3. Top improvements (from feedback_improvement table)
     query3 = text("""
         SELECT fi.improvement, COUNT(*) as count
         FROM feedback_improvement fi
@@ -173,7 +123,7 @@ def get_feedback_insights():
     top_improvements = [{"improvement": row[0], "count": row[1]} for row in result3]
     print("DEBUG: Top improvements:", top_improvements)
 
-    # 4. Detailed feedback entries, filtering to only include those feedback entries where the notes start with an alphabet letter.
+    # 4. Detailed feedback entries: only include entries where f.notes starts with an alphabetical character.
     query4 = text("""
         SELECT ja.job_title, ja.company, f.notes, f.detailed_feedback, ja.status, f.created_at
         FROM feedback f
@@ -193,35 +143,30 @@ def get_feedback_insights():
     } for row in result4]
     print("DEBUG: Number of detailed feedback entries:", len(detailed_feedback))
 
-    # 5. Generate simple recommendations based on the top improvements.
+    # 5. Generate recommendations based on the top improvement.
     recommendations = []
     if top_improvements:
         top_improve = top_improvements[0].get("improvement", "").lower()
-        # Expanded simple rules for suggestions:
+        # Expanded recommendation rules:
         if "communication" in top_improve:
             recommendations.append(
-                "The feedback indicates a need to improve your communication skills. "
-                "Consider joining a public speaking club (such as Toastmasters), enrolling in a specialized workshop, or engaging in group discussions to enhance your interpersonal skills."
+                "The feedback indicates a need to improve your communication skills. Consider joining a public speaking club such as Toastmasters, enrolling in specialized communication courses, and seeking regular feedback from peers."
             )
         elif "time" in top_improve:
             recommendations.append(
-                "Feedback suggests you could benefit from better time management. "
-                "Look into time management training resources, use productivity tools (like planners or apps), and adopt scheduling techniques to better organize your work."
+                "Feedback suggests you could benefit from improved time management. Explore time management workshops or online seminars, and consider using planning tools to better organize your tasks."
             )
         elif "technical" in top_improve:
             recommendations.append(
-                "It appears there is room to improve technical skills. "
-                "Consider attending advanced courses, participating in coding challenges, or seeking mentorship to bridge gaps in your technical expertise."
+                "It appears there is room to enhance your technical expertise. Look into advanced courses, workshops, or hands-on projects that challenge your current skills, and consider mentorship opportunities."
             )
         elif "leadership" in top_improve:
             recommendations.append(
-                "The feedback highlights a need to strengthen your leadership skills. "
-                "Explore leadership training, consider mentorship opportunities, and read literature on team management and decision-making."
+                "The feedback highlights a need for better leadership skills. You might benefit from leadership training programs, mentoring sessions, or management workshops to improve these skills."
             )
         else:
             recommendations.append(
-                "Review your feedback for recurring themes and consider targeted self-improvement. "
-                "This might involve further training, practice, or seeking guidance from peers or mentors in the identified areas."
+                "Review your feedback for recurring themes and focus on targeted self-improvement initiatives. Consider seeking additional mentoring or training in the areas that most frequently appear in your feedback."
             )
     else:
         recommendations.append("No common improvement areas identified.")

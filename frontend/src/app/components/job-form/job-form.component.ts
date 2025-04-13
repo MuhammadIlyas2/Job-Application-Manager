@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { JobService } from '../../services/job.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
 import { CommonModule } from '@angular/common';
@@ -14,28 +14,28 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./job-form.component.css']
 })
 export class JobFormComponent {
-  // New date properties added: interview_date, offer_date, accepted_date, rejected_date
+  // Initialize job with default values.
+  // In your JobFormComponent (job-form.component.ts)
   job: any = {
     job_title: '',
     company: '',
     status: 'applied',
     general_notes: '',
     feedbackSummary: '',
-    // New date fields:
     applied_date: '',
     interview_date: '',
     offer_date: '',
     accepted_date: '',
     rejected_date: '',
+    // Initialize role_category as an empty string to force the default option.
+    role_category: '',
     feedback: {
       id: undefined,
       notes: '',
       category_id: null,
       detailed_feedback: '',
-      // For improvements:
       priority_improvement: '',
       additional_improvements: [] as string[],
-      // For strengths:
       priority_strength: '',
       additional_strengths: [] as string[]
     }
@@ -48,14 +48,14 @@ export class JobFormComponent {
   isEditMode = false;
   errorMessage = '';
 
-  // ================= Interview Q&A properties =================
+  // Interview Q&A properties
   showInterviewQASection = false;
   selectedQA: { id?: number; question: string; answer: string }[] = [];
   qaSuggestions: { [index: number]: any[] } = {};
   questionBank: any[] = [];
   usedQuestionIds = new Set<number>();
 
-  // ================= Additional Strengths/Improvements properties =================
+  // Additional Strengths/Improvements properties
   showAdditionalStrengthInput: boolean = false;
   tempAdditionalStrength: string = '';
   showAdditionalImprovementInput: boolean = false;
@@ -78,12 +78,12 @@ export class JobFormComponent {
       this.isEditMode = true;
       this.loadJob(jobId);
       this.fetchRecommendedQuestions(+jobId);
-      // Load existing Interview Q&A (for the job’s feedback)
+      // Load existing Interview Q&A if applicable.
       this.jobService.getInterviewQAs(+jobId).subscribe({
         next: (res) => { this.selectedQA = res; },
         error: (err) => console.error('Failed to load interview questions', err)
       });
-      // Also load strengths & improvements extras if needed.
+      // Load strengths & improvements.
       this.jobService.getFeedbackStrengths(+jobId).subscribe({
         next: (res) => {
           this.job.feedback.priority_strength = res.priority || '';
@@ -149,7 +149,6 @@ export class JobFormComponent {
   private loadJob(jobId: string): void {
     this.jobService.getJobById(+jobId).subscribe({
       next: (res) => {
-        // Initialize job with empty date fields for extra statuses.
         this.job = {
           ...res,
           role_category: res.role_category || '',
@@ -169,15 +168,13 @@ export class JobFormComponent {
             category_id: res.feedback?.category_id || null
           }
         };
-  
-        // Set the feedback summary (for the input field)
+
         this.job.feedbackSummary = typeof this.job.feedback.notes === 'string'
           ? this.job.feedback.notes
           : '';
         
         this.filterCategories();
         
-        // Load the status history for this job and update the corresponding date fields.
         this.jobService.getJobStatusHistory(+jobId).subscribe({
           next: (history) => {
             (history as any[]).forEach((record: any) => {
@@ -205,11 +202,16 @@ export class JobFormComponent {
     });
   }
 
-  submitForm(): void {
-    // Prepare the basic job and feedback data
+  submitForm(jobForm: NgForm): void {
+    // Prevent submission if the form is invalid; the error messages will be shown.
+    if (!jobForm.valid) {
+      console.log("Form is invalid. Please fill out required fields.");
+      return;
+    }
+
+    // Prepare the job and feedback data.
     const jobData = { ...this.job };
-  
-    // Build the feedback extras as separate objects.
+
     const feedbackData = {
       notes: this.job.feedbackSummary.substring(0, 50),
       category_id: this.job.feedback.category_id,
@@ -223,21 +225,19 @@ export class JobFormComponent {
         additional: this.job.feedback.additional_improvements
       }
     };
-  
-    // Remove the nested feedback object from jobData so it isn’t sent twice.
+
     delete jobData.feedback;
-  
-    // Include the new date fields in jobData.
+
     jobData.applied_date = this.job.applied_date;
     jobData.interview_date = this.job.interview_date;
     jobData.offer_date = this.job.offer_date;
     jobData.accepted_date = this.job.accepted_date;
     jobData.rejected_date = this.job.rejected_date;
-  
+
     const operation = this.isEditMode
       ? this.jobService.updateJob(this.job.id, jobData)
       : this.jobService.createJob(jobData);
-  
+
     operation.subscribe({
       next: (res) => {
         const jobId = this.isEditMode ? this.job.id : res.job.id;
@@ -258,26 +258,24 @@ export class JobFormComponent {
       error: (err) => this.handleError(err)
     });
   }
-  
+
   private handleFeedback(jobId: number, feedbackData: any): void {
     const operation = this.job.feedback?.id
       ? this.jobService.updateFeedback(jobId, feedbackData)
       : this.jobService.createFeedback(jobId, feedbackData);
     operation.subscribe({
-      next: () => {
-        // Feedback saved; continue with Interview Q&A if applicable.
-      },
+      next: () => {},
       error: (err) => {
         this.errorMessage += '\nFailed to save feedback details';
         console.error(err);
       }
     });
   }
-  
+
   private saveInterviewQAs(jobId: number): void {
     this.jobService.saveInterviewQAs(jobId, this.selectedQA).subscribe({
       next: (res) => {
-        console.log("DEBUG: Interview Q&A saved successfully:", res);
+        console.log("Interview Q&A saved successfully", res);
         this.router.navigate(['/jobs']);
       },
       error: (err) => {
@@ -286,9 +284,8 @@ export class JobFormComponent {
       }
     });
   }
-  
-  // ================= Additional Strengths/Improvements Methods =================
-  
+
+  // Additional Strengths/Improvements Methods
   addAdditionalStrength(): void {
     this.job.feedback.additional_strengths.push('');
   }
@@ -301,9 +298,8 @@ export class JobFormComponent {
   removeAdditionalImprovement(index: number): void {
     this.job.feedback.additional_improvements.splice(index, 1);
   }
-  
-  // ================= Interview Q&A Methods =================
-  
+
+  // Interview Q&A Methods
   toggleInterviewQA(): void {
     if (!this.showInterviewQASection && this.selectedQA.length === 0) {
       this.addInterviewQA();
@@ -362,9 +358,8 @@ export class JobFormComponent {
       });
     }
   }
-  
-  // ================= Utility Methods =================
-  
+
+  // Utility Methods
   private setCurrentUser(): void {
     this.authService.getCurrentUser().subscribe({
       next: (user) => (this.job.user_id = user.id),
@@ -375,8 +370,8 @@ export class JobFormComponent {
     this.errorMessage = err.error?.message || 'Operation failed. Please try again.';
     console.error(err);
   }
-  
-  // ================= TrackBy Function for ngFor =================
+
+  // TrackBy Function
   trackByIndex(index: number, item: any): number {
     return index;
   }

@@ -375,9 +375,9 @@ def delete_job(job_id):
 @jwt_required()
 def get_feedback_categories():
     try:
-        categories = FeedbackCategory.query.all()
+        categories = FeedbackCategory.query.order_by(FeedbackCategory.name.asc()).all()
         result = [c.serialize() for c in categories]
-        print("✅ Feedback Categories from DB:", result)
+        print("✅ Feedback Categories (alphabetically sorted):", result)
         return jsonify(result), 200
     except Exception as e:
         print(f"❌ ERROR in get_feedback_categories: {str(e)}")

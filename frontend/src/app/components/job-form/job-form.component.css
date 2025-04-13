@@ -281,6 +281,14 @@ html, body {
   color: #ff4d4d;
   text-align: center;
   font-weight: bold;
+  transition: opacity 0.3s ease;
+}
+
+input.ng-valid + .error-message,
+select.ng-valid + .error-message,
+textarea.ng-valid + .error-message {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .date-row {
