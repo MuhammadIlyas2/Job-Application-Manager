@@ -1,31 +1,174 @@
-.feedback-insights {
-    padding: 20px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    max-width: 800px;
-    margin: 20px auto;
-  }
-  
-  .feedback-insights h2,
-  .feedback-insights h3 {
-    color: #6C63FF;
-  }
-  
-  .feedback-counts,
-  .top-strengths,
-  .top-improvements {
-    margin-bottom: 20px;
-  }
-  
-  .feedback-counts div,
-  .top-strengths div,
-  .top-improvements div {
-    margin-bottom: 8px;
-  }
-  
-  .error {
-    color: #dc3545;
-    margin-top: 15px;
-  }
-  
+/* feedback-insights.component.css */
+.feedback-insights-dashboard {
+  max-width: 1200px;
+  margin: 20px auto;
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.page-title {
+  color: #6C63FF;
+  font-size: 28px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.page-title i {
+  margin-right: 8px;
+  font-size: 1.2em;
+}
+
+.page-title::after {
+  content: "";
+  display: block;
+  width: 50px;
+  height: 3px;
+  background: #6C63FF;
+  margin: 10px auto 0;
+  border-radius: 2px;
+}
+
+.filter-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.filter-section input[type="date"],
+.filter-section select {
+  padding: 5px 10px;
+  font-size: 1rem;
+}
+
+.filter-section button {
+  padding: 5px 10px;
+  background: #6C63FF;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.filter-section button:hover {
+  background: #5A54D7;
+}
+
+.charts-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-evenly;
+  margin-bottom: 20px;
+}
+
+.chart-card {
+  flex: 1 1 300px;
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.chart-card h3 {
+  margin-bottom: 10px;
+  color: #555;
+  font-size: 1.2rem;
+}
+
+.feedback-details table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.feedback-details th, .feedback-details td {
+  border: 1px solid #E5E7EB;
+  padding: 10px;
+  text-align: left;
+}
+
+.feedback-details th {
+  background: #6C63FF;
+  color: #fff;
+}
+
+.suggestions-section {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.suggestions-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.suggestions-section li {
+  background: #f9f9f9;
+  border: 1px dashed #ddd;
+  padding: 10px;
+  margin: 5px auto;
+  max-width: 600px;
+  border-radius: 6px;
+}
+
+.btn-primary {
+  background: #6C63FF;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none; /* for routerLink or <a> */
+}
+
+.btn-primary:hover {
+  background: #5A54D7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Outline / Ghost version of the primary button */
+.btn-primary.btn-outline {
+  background: transparent;
+  color: #6C63FF;
+  border: 2px solid #6C63FF;
+}
+
+.btn-primary.btn-outline:hover {
+  background: #6C63FF;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.export-btn{
+  position:relative;
+  right: -90%;
+  z-index: 1;
+
+}
+
+ h3 {
+  text-align: center;
+  color: #6C63FF;
+  margin-bottom: 10px;
+  font-size: x-large;
+}
+
+.error {
+  color: red;
+  text-align: center;
+  margin-top: 20px;
+}

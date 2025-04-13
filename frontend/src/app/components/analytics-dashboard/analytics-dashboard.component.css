@@ -107,8 +107,8 @@
   
   .right-chart h3 {
     margin-bottom: 10px;
-    color: #555;
-    font-size: 1.2rem;
+    color: #6C63FF;
+    font-size: x-large;
   }
   
   /* Line Chart Section */
@@ -118,6 +118,7 @@
   
   .linechart-row h3 {
     text-align: center;
+    font-size: x-large;
     color: #6C63FF;
     margin-bottom: 10px;
   }

@@ -1,49 +1,185 @@
-import { Component, OnInit } from '@angular/core';
+// feedback-insights.component.ts
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { AnalyticsService } from '../../services/analytics.service';
+import { Chart, registerables } from 'chart.js';
+import { saveAs } from 'file-saver';
+import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-feedback-insights',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="feedback-insights">
-      <h2>Feedback Insights</h2>
-      <div *ngIf="feedbackData">
-        <div class="feedback-counts">
-          <h3>Feedback Counts by Category</h3>
-          <div *ngFor="let fc of feedbackData.feedback_counts">
-            <strong>{{ fc.name }}:</strong> {{ fc.count }}
-          </div>
-        </div>
-        <div class="top-strengths">
-          <h3>Top Strengths</h3>
-          <div *ngFor="let strength of feedbackData.top_strengths">
-            <span>{{ strength.strength }} ({{ strength.count }})</span>
-          </div>
-        </div>
-        <div class="top-improvements">
-          <h3>Top Improvements</h3>
-          <div *ngFor="let improvement of feedbackData.top_improvements">
-            <span>{{ improvement.improvement }} ({{ improvement.count }})</span>
-          </div>
-        </div>
-      </div>
-      <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
-    </div>
-  `,
+  imports: [FormsModule, CommonModule],
+  templateUrl: './feedback-insights.component.html',
   styleUrls: ['./feedback-insights.component.css']
 })
 export class FeedbackInsightsComponent implements OnInit {
-  feedbackData: any;
+  feedbackInsights: any = {};
   errorMessage: string = '';
+
+  @ViewChild('categoryChart') categoryChartRef!: ElementRef;
+  @ViewChild('strengthsChart') strengthsChartRef!: ElementRef;
+  @ViewChild('improvementsChart') improvementsChartRef!: ElementRef;
+
+  categoryChart!: Chart;
+  strengthsChart!: Chart;
+  improvementsChart!: Chart;
 
   constructor(private analyticsService: AnalyticsService) {}
 
   ngOnInit(): void {
+    this.loadFeedbackInsights();
+  }
+
+  loadFeedbackInsights(): void {
     this.analyticsService.getFeedbackInsights().subscribe({
-      next: res => { this.feedbackData = res; },
-      error: err => { this.errorMessage = 'Failed to load feedback insights'; console.error(err); }
+      next: (res) => {
+        this.feedbackInsights = res;
+        // Render charts after a brief delay to ensure the view is ready.
+        setTimeout(() => {
+          this.renderCategoryChart();
+          this.renderStrengthsChart();
+          this.renderImprovementsChart();
+        }, 0);
+      },
+      error: (err) => {
+        this.errorMessage = 'Failed to load feedback insights';
+        console.error(err);
+      }
     });
+  }
+
+  renderCategoryChart(): void {
+    if (this.categoryChart) {
+      this.categoryChart.destroy();
+    }
+    // Get the feedback counts object
+    const counts = this.feedbackInsights.feedback_counts || {};
+    // Get category labels (e.g., positive, negative, neutral)
+    const labels = Object.keys(counts);
+    const data = labels.map(key => counts[key]);
+    // Map each label to a color: positive -> green, negative -> red, neutral -> grey
+    const backgroundColors = labels.map(label => {
+      const lower = label.toLowerCase();
+      if (lower === 'positive') {
+        return 'green';
+      } else if (lower === 'negative') {
+        return 'red';
+      } else if (lower === 'neutral') {
+        return 'grey';
+      } else {
+        return 'blue'; // default color
+      }
+    });
+    this.categoryChart = new Chart(this.categoryChartRef.nativeElement, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: backgroundColors
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'bottom' },
+          title: { display: true, text: 'Feedback Category Breakdown' }
+        }
+      }
+    });
+  }
+
+  renderStrengthsChart(): void {
+    if (!this.feedbackInsights.top_strengths) return;
+    if (this.strengthsChart) {
+      this.strengthsChart.destroy();
+    }
+    const labels = this.feedbackInsights.top_strengths.map((item: any) => item.strength);
+    const data = this.feedbackInsights.top_strengths.map((item: any) => item.count);
+    this.strengthsChart = new Chart(this.strengthsChartRef.nativeElement, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Top Strengths',
+          data: data,
+          backgroundColor: 'lightgreen'
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false },
+          title: { display: true, text: 'Top Strengths' }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  renderImprovementsChart(): void {
+    if (!this.feedbackInsights.top_improvements) return;
+    if (this.improvementsChart) {
+      this.improvementsChart.destroy();
+    }
+    const labels = this.feedbackInsights.top_improvements.map((item: any) => item.improvement);
+    const data = this.feedbackInsights.top_improvements.map((item: any) => item.count);
+    this.improvementsChart = new Chart(this.improvementsChartRef.nativeElement, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Top Improvements',
+          data: data,
+          backgroundColor: 'orange'
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false },
+          title: { display: true, text: 'Top Improvements' }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  exportData(): void {
+    // Example export function to CSV.
+    const csvRows: string[] = [];
+    const headers = ['Job Title', 'Company', 'Status', 'Feedback Summary', 'Detailed Feedback', 'Created At'];
+    csvRows.push(headers.join(','));
+    (this.feedbackInsights.detailed_feedback || []).forEach((entry: any) => {
+      const row = [
+        `"${entry.job_title}"`,
+        `"${entry.company}"`,
+        entry.status,
+        `"${this.getDisplayText(entry.notes, 'No summary')}"`,
+        `"${this.getDisplayText(entry.detailed_feedback, 'No details')}"`,
+        entry.created_at
+      ];
+      csvRows.push(row.join(','));
+    });
+    const csvData = csvRows.join('\n');
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, 'FeedbackInsights.csv');
+  }
+
+  // Helper method to check if a string starts with an alphabetical character.
+  isValidText(value: string | null | undefined): boolean {
+    if (!value) return false;
+    const trimmed = value.trim();
+    // Remove zero-width spaces and BOM characters.
+    const normalized = trimmed.replace(/[\u200B-\u200D\uFEFF]/g, '');
+    return /^[A-Za-z]/.test(normalized);
+  }
+
+  // Returns the display text; if invalid or blank, returns the fallback.
+  getDisplayText(value: string | null | undefined, fallback: string = 'N/A'): string {
+    return this.isValidText(value) ? value!.trim() : fallback;
   }
 }

@@ -1,37 +1,70 @@
-<!-- feedback-insights.component.html -->
-<div class="feedback-insights">
-    <h2>Feedback Insights</h2>
-    
-    <div *ngIf="feedbackData; else loadingFeedback">
-      <!-- Feedback Counts -->
-      <div class="feedback-counts">
-        <h3>Feedback Counts by Category</h3>
-        <div *ngFor="let fc of feedbackData.feedback_counts">
-          <strong>{{ fc.name }}:</strong> {{ fc.count }}
-        </div>
-      </div>
-      
-      <!-- Top Strengths -->
-      <div class="top-strengths">
-        <h3>Top Strengths</h3>
-        <div *ngFor="let strength of feedbackData.top_strengths">
-          <span>{{ strength.strength }} ({{ strength.count }})</span>
-        </div>
-      </div>
-      
-      <!-- Top Improvements -->
-      <div class="top-improvements">
-        <h3>Top Improvements</h3>
-        <div *ngFor="let improvement of feedbackData.top_improvements">
-          <span>{{ improvement.improvement }} ({{ improvement.count }})</span>
-        </div>
-      </div>
+<div class="feedback-insights-dashboard">
+  <!-- Page Title -->
+  <h2 class="page-title">
+    <i class="fas fa-comments"></i> Feedback Insights
+  </h2>
+
+  <!-- Aggregated Feedback Visualizations -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Feedback Category Breakdown</h3>
+      <canvas #categoryChart></canvas>
     </div>
-    <ng-template #loadingFeedback>
-      <p>Loading feedback insights...</p>
-    </ng-template>
-  
-    <!-- Error Message -->
-    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+    <div class="chart-card">
+      <h3>Top Strengths</h3>
+      <canvas #strengthsChart></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Top Improvements</h3>
+      <canvas #improvementsChart></canvas>
+    </div>
   </div>
-  
+
+  <!-- Drill-Down: Detailed Feedback Table -->
+  <div class="feedback-details" *ngIf="feedbackInsights.detailed_feedback && feedbackInsights.detailed_feedback.length">
+    <h3 class="inline">Detailed Feedback</h3>
+    <!-- Export Data Button -->
+  <div class="export-btn inline">
+    <button (click)="exportData()" class="btn-primary btn-outline">
+      <i class="fas fa-file-export"></i> Export Data
+    </button>
+  </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Job Title</th>
+          <th>Company</th>
+          <th>Status</th>
+          <th>Feedback Summary</th>
+          <th>Detailed Feedback</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let entry of feedbackInsights.detailed_feedback">
+          <td>{{ entry.job_title }}</td>
+          <td>{{ entry.company }}</td>
+          <td>{{ entry.status }}</td>
+          <td>{{ entry.notes }}</td>
+          <td>{{ entry.detailed_feedback }}</td>
+          <td>{{ entry.created_at | date:'shortDate' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Actionable Recommendations -->
+  <div class="suggestions-section" *ngIf="feedbackInsights.recommendations && feedbackInsights.recommendations.length">
+    <h3>Recommendations for Improvement</h3>
+    <ul>
+      <li *ngFor="let suggestion of feedbackInsights.recommendations">
+        {{ suggestion }}
+      </li>
+    </ul>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="error">
+    {{ errorMessage }}
+  </div>
+</div>
