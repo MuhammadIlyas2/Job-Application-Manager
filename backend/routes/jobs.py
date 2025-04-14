@@ -595,7 +595,7 @@ def get_feedback_strengths(job_id):
             {"job_id": job_id}
         ).fetchone()
         if not feedback:
-            return jsonify({"message": "Feedback not found"}), 404
+            return jsonify({"priority": None, "additional": []}), 200
         feedback_id = feedback[0]
         query = text("SELECT is_priority, strength FROM feedback_strength WHERE feedback_id = :feedback_id")
         results = db.session.execute(query, {"feedback_id": feedback_id}).fetchall()
@@ -620,7 +620,7 @@ def get_feedback_improvements(job_id):
             {"job_id": job_id}
         ).fetchone()
         if not feedback:
-            return jsonify({"message": "Feedback not found"}), 404
+            return jsonify({"priority": None, "additional": []}), 200
         feedback_id = feedback[0]
         query = text("SELECT is_priority, improvement FROM feedback_improvement WHERE feedback_id = :feedback_id")
         results = db.session.execute(query, {"feedback_id": feedback_id}).fetchall()
