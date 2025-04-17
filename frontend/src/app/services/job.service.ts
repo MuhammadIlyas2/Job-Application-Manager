@@ -126,4 +126,8 @@ export class JobService {
     const headers = this.getAuthHeaders();
     return this.http.get<any>(`${this.baseUrl}/${jobId}/status-history`, { headers });
   }
+
+  deleteFeedback(jobId: number): Observable<any> {
+  return this.http.delete(`${this.baseUrl}/${jobId}/feedback`);
+}
 }

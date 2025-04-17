@@ -153,4 +153,12 @@ export class JobListComponent implements OnInit, AfterViewInit {
   getPageNumbers(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
+
+  // Add this helper method
+  shouldFadeFeedback(feedback: string): boolean {
+    // Check for empty or default message
+    return !feedback ||
+      feedback === 'No feedback yet' ||
+      feedback.trim() === '';
+  }
 }

@@ -279,9 +279,23 @@ def get_job(job_id):
 @jwt_required()
 def handle_feedback(job_id):
     try:
-        data = request.get_json()
         print("DEBUG: Received feedback request. Method:", request.method)
         print("DEBUG: Feedback data:", data)
+        data = request.get_json()
+        
+        # Check for empty feedback
+        empty_feedback = (
+            not data.get('notes', '').strip() and
+            not data.get('detailed_feedback', '').strip() and
+            not data.get('strengths', {}).get('priority', '').strip() and
+            len(data.get('strengths', {}).get('additional', [])) == 0 and
+            not data.get('improvements', {}).get('priority', '').strip() and
+            len(data.get('improvements', {}).get('additional', [])) == 0
+        )
+        
+        if empty_feedback:
+            return jsonify({"message": "Empty feedback not stored"}), 400
+        
         job_check_query = text("SELECT id, status FROM job_application WHERE id = :job_id")
         job = db.session.execute(job_check_query, {"job_id": job_id}).fetchone()
         if not job:
@@ -650,6 +664,37 @@ def get_job_status_history(job_id):
         # Use row._mapping to convert each row to a dictionary
         history = [dict(row._mapping) for row in results]
         return jsonify(history), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+    
+@jobs_bp.route('/<int:job_id>/feedback', methods=['DELETE'])
+@jwt_required()
+def delete_feedback(job_id):
+    try:
+        # Delete associated strengths/improvements first
+        db.session.execute(text("""
+            DELETE FROM feedback_strength 
+            WHERE feedback_id IN (
+                SELECT id FROM feedback WHERE job_id = :job_id
+            )
+        """), {"job_id": job_id})
+        
+        db.session.execute(text("""
+            DELETE FROM feedback_improvement 
+            WHERE feedback_id IN (
+                SELECT id FROM feedback WHERE job_id = :job_id
+            )
+        """), {"job_id": job_id})
+
+        # Delete main feedback record
+        db.session.execute(text("""
+            DELETE FROM feedback 
+            WHERE job_id = :job_id
+        """), {"job_id": job_id})
+        
+        db.session.commit()
+        return jsonify({"message": "Feedback deleted successfully"}), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500

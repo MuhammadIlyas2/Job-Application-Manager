@@ -82,7 +82,7 @@
         <td>
           <app-status-pill [status]="job.status"></app-status-pill>
         </td>
-        <td [ngClass]="{'faded-feedback': job.feedback === 'No feedback yet'}">
+        <td [ngClass]="{'faded-feedback': shouldFadeFeedback(job.feedback)}">
           {{ job.feedback || 'No feedback yet' }}
         </td>
         <td class="action-buttons">
