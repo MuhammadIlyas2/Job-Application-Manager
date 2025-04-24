@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { StatusPillComponent } from '../status-pill/status-pill.component';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-job-list',
@@ -31,7 +32,7 @@ export class JobListComponent implements OnInit, AfterViewInit {
 
   @ViewChild('tableContainer') tableContainer!: ElementRef;
 
-  constructor(private jobService: JobService, private router: Router) {}
+  constructor(private jobService: JobService, private router: Router, private authService: AuthService) {}
 
   ngOnInit(): void {
     this.calculateJobsPerPage();
@@ -160,5 +161,10 @@ export class JobListComponent implements OnInit, AfterViewInit {
     return !feedback ||
       feedback === 'No feedback yet' ||
       feedback.trim() === '';
+  }
+
+  logout() {
+    this.authService.logout();               // clear token/session
+    this.router.navigate(['/login']); // redirect to login page
   }
 }

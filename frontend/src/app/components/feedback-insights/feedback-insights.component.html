@@ -4,6 +4,14 @@
     <i class="fas fa-comments"></i> Feedback Insights
   </h2>
 
+  <div class="filter-bar">
+    <label for="roleSelect">View by Role:</label>
+    <select id="roleSelect" [(ngModel)]="selectedRole" (change)="loadFeedbackInsights()">
+      <option value="">All Roles</option>
+      <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+    </select>
+  </div>
+
   <!-- Aggregated Feedback Visualizations -->
   <div class="charts-row">
     <div class="chart-card">

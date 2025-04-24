@@ -5,6 +5,7 @@ import { Chart, registerables, ChartConfiguration } from 'chart.js';
 import { saveAs } from 'file-saver';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { RoleService } from '../../services/role.service';
 Chart.register(...registerables);
 
 // Optional: Define interfaces for strengths and improvements for better type safety.
@@ -27,39 +28,59 @@ interface TopImprovement {
 })
 export class FeedbackInsightsComponent implements OnInit {
   feedbackInsights: any = {};
+  roles: string[] = [];
+  selectedRole: string = '';
   errorMessage: string = '';
 
   @ViewChild('categoryChart') categoryChartRef!: ElementRef;
   @ViewChild('strengthsChart') strengthsChartRef!: ElementRef;
   @ViewChild('improvementsChart') improvementsChartRef!: ElementRef;
 
-  categoryChart!: Chart;
-  strengthsChart!: Chart;
-  improvementsChart!: Chart;
+  private categoryChart!: Chart;
+  private strengthsChart!: Chart;
+  private improvementsChart!: Chart;
 
   constructor(private analyticsService: AnalyticsService) {}
 
   ngOnInit(): void {
+    // Fetch only the roles the user has applied for
+    this.analyticsService.getAvailableRoles().subscribe({
+      next: (roles: string[]) => {
+        this.roles = roles;
+        // After roles loaded, fetch insights
+        this.loadFeedbackInsights();
+      },
+      error: err => {
+        console.error('Failed to load roles', err);
+        this.errorMessage = 'Couldn’t load roles';
+      }
+    });
+  }
+
+  onRoleChange(): void {
     this.loadFeedbackInsights();
   }
 
   loadFeedbackInsights(): void {
-    this.analyticsService.getFeedbackInsights().subscribe({
-      next: (res: any) => {
-        this.feedbackInsights = res;
-        // Render charts after a brief delay to ensure the view is ready.
+    this.analyticsService.getFeedbackInsightsByRole(
+      this.selectedRole || undefined
+    ).subscribe({
+      next: insights => {
+        this.feedbackInsights = insights;
+        // Render charts after view updates
         setTimeout(() => {
           this.renderCategoryChart();
           this.renderStrengthsChart();
           this.renderImprovementsChart();
         }, 0);
       },
-      error: (err: any) => {
+      error: err => {
+        console.error('Failed to load feedback insights', err);
         this.errorMessage = 'Failed to load feedback insights';
-        console.error(err);
       }
     });
   }
+
 
   renderCategoryChart(): void {
     if (this.categoryChart) {

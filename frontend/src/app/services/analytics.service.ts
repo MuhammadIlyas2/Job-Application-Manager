@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';  // Inject AuthService
 
@@ -37,5 +37,25 @@ export class AnalyticsService {
       }
     }
     return this.http.get(`${this.baseUrl}/feedback-insights${queryParams}`, { headers });
+  }
+
+  getFeedbackInsightsByRole(role?: string): Observable<any> {
+    const headers = this.getAuthHeaders();
+    let params = new HttpParams();
+    if (role) {
+      params = params.set('role', role);
+    }
+    return this.http.get(
+      `${this.baseUrl}/feedback-insights`,
+      { headers, params }
+    );
+  }
+
+  getAvailableRoles(): Observable<string[]> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<string[]>(
+      `${this.baseUrl}/available-roles`,
+      { headers }
+    );
   }
 }

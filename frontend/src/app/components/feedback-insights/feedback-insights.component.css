@@ -167,6 +167,53 @@
   font-size: x-large;
 }
 
+/* Filter bar (View by Role) */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.filter-bar label {
+  font-weight: bolder;
+  color: #555;
+  font-size: 1rem;
+}
+
+.filter-bar select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f9f9f9 url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'><polygon points='0,0 10,0 5,7' fill='%236C63FF'/></svg>") no-repeat right 10px center;
+  background-size: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.filter-bar select:focus {
+  outline: none;
+  border-color: #6C63FF;
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+}
+
+@media (max-width: 600px) {
+  .filter-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .filter-bar select {
+    width: 100%;
+  }
+}
+
+
 .error {
   color: red;
   text-align: center;
