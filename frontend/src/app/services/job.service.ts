@@ -128,6 +128,10 @@ export class JobService {
   }
 
   deleteFeedback(jobId: number): Observable<any> {
-  return this.http.delete(`${this.baseUrl}/${jobId}/feedback`);
-}
+    const headers = this.getAuthHeaders();
+    return this.http.delete<any>(
+      `${this.baseUrl}/${jobId}/feedback`,
+      { headers }
+    );
+  }
 }

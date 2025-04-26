@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+
 
 import { JobListComponent } from './job-list.component';
 
@@ -8,7 +11,7 @@ describe('JobListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [JobListComponent]
+      imports: [JobListComponent, HttpClientTestingModule, RouterTestingModule]
     })
     .compileComponents();
 

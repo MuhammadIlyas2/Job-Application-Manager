@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { AnalyticsDashboardComponent } from './analytics-dashboard.component';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('AnalyticsDashboardComponent', () => {
   let component: AnalyticsDashboardComponent;
@@ -8,7 +10,7 @@ describe('AnalyticsDashboardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AnalyticsDashboardComponent]
+      imports: [AnalyticsDashboardComponent, HttpClientTestingModule, RouterTestingModule]
     })
     .compileComponents();
 
