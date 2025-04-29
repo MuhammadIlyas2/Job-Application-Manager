@@ -22,7 +22,6 @@ export class JobListComponent implements OnInit, AfterViewInit {
   totalPages = 1;
   jobsPerPage: number = 5;
 
-  // Filters for search text, status and role category
   filters: { searchText: string; status: string; sortBy: string; sortOrder: string } = {
     searchText: '',
     status: '',
@@ -155,16 +154,14 @@ export class JobListComponent implements OnInit, AfterViewInit {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
-  // Add this helper method
   shouldFadeFeedback(feedback: string): boolean {
-    // Check for empty or default message
     return !feedback ||
       feedback === 'No feedback yet' ||
       feedback.trim() === '';
   }
 
   logout() {
-    this.authService.logout();               // clear token/session
-    this.router.navigate(['/login']); // redirect to login page
+    this.authService.logout();            
+    this.router.navigate(['/login']); 
   }
 }

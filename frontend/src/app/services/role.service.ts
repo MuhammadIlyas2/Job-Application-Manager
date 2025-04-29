@@ -6,9 +6,6 @@ import { Injectable } from '@angular/core';
 })
 export class RoleService {
   private roles = [
-    // ============================
-    // Technology & IT Roles
-    // ============================
     { name: 'Frontend Developer', color: '#61dafb' },
     { name: 'Backend Developer', color: '#4dc0b5' },
     { name: 'Full Stack Developer', color: '#FF5733' },
@@ -43,9 +40,6 @@ export class RoleService {
     { name: 'Information Security Manager', color: '#5733FF' },
     { name: 'IT Consultant', color: '#7D3C98' },
 
-    // ============================
-    // Design & Creative Roles
-    // ============================
     { name: 'UI/UX Designer', color: '#3357FF' },
     { name: 'Graphic Designer', color: '#FF33A8' },
     { name: 'Industrial Designer', color: '#8C33FF' },
@@ -66,9 +60,6 @@ export class RoleService {
     { name: 'Video Producer', color: '#3357FF' },
     { name: 'Sound Designer', color: '#FF33D1' },
 
-    // ============================
-    // Marketing, Sales & Customer Roles
-    // ============================
     { name: 'Digital Marketing Specialist', color: '#FF3380' },
     { name: 'SEO Specialist', color: '#33D1FF' },
     { name: 'Content Strategist', color: '#FF5733' },
@@ -88,9 +79,6 @@ export class RoleService {
     { name: 'Media Buyer', color: '#33D1FF' },
     { name: 'Copywriter', color: '#FF5733' },
 
-    // ============================
-    // Data, Analytics & Research Roles
-    // ============================
     { name: 'Data Analyst', color: '#33FFA8' },
     { name: 'Business Intelligence Analyst', color: '#FF33C4' },
     { name: 'Data Architect', color: '#33D1FF' },
@@ -103,9 +91,6 @@ export class RoleService {
     { name: 'Research Assistant', color: '#3357FF' },
     { name: 'Economic Analyst', color: '#FF33A8' },
 
-    // ============================
-    // Infrastructure, Integration & Specialized Engineering Roles
-    // ============================
     { name: 'Integration Developer', color: '#3357FF' },
     { name: 'Localization Specialist', color: '#FF33D1' },
     { name: 'Chatbot Developer', color: '#33A8FF' },
@@ -124,9 +109,6 @@ export class RoleService {
     { name: 'Electronics Engineer', color: '#FF5733' },
     { name: 'Field Service Technician', color: '#BADA55' },
 
-    // ============================
-    // Human Resources & Administration Roles
-    // ============================
     { name: 'HR Manager', color: '#C0392B' },
     { name: 'HR Coordinator', color: '#E74C3C' },
     { name: 'Recruiter', color: '#F39C12' },
@@ -136,9 +118,6 @@ export class RoleService {
     { name: 'Receptionist', color: '#F4D03F' },
     { name: 'Data Entry Clerk', color: '#D68910' },
 
-    // ============================
-    // Transportation & Logistics Roles
-    // ============================
     { name: 'Truck Driver', color: '#FF5733' },
     { name: 'Delivery Driver', color: '#FF8C33' },
     { name: 'Pilot', color: '#FF33A8' },
@@ -148,9 +127,6 @@ export class RoleService {
     { name: 'Forklift Operator', color: '#FF33D1' },
     { name: 'Supply Chain Analyst', color: '#A833FF' },
 
-    // ============================
-    // Energy, Mining & Utilities Roles
-    // ============================
     { name: 'Energy Analyst', color: '#33FFA8' },
     { name: 'Renewable Energy Technician', color: '#33FFBD' },
     { name: 'Mining Engineer', color: '#5733FF' },
@@ -158,9 +134,6 @@ export class RoleService {
     { name: 'Wind Turbine Technician', color: '#33D1FF' },
     { name: 'Solar Panel Installer', color: '#FF8C33' },
 
-    // ============================
-    // Scientific & Research Roles
-    // ============================
     { name: 'Biologist', color: '#27AE60' },
     { name: 'Chemist', color: '#1ABC9C' },
     { name: 'Physicist', color: '#16A085' },
@@ -169,9 +142,6 @@ export class RoleService {
     { name: 'Lab Technician', color: '#E67E22' },
     { name: 'Clinical Research Coordinator', color: '#F5B041' },
 
-    // ============================
-    // Construction, Manufacturing & Skilled Trades Roles
-    // ============================
     { name: 'Construction Manager', color: '#5D6D7E' },
     { name: 'Carpenter', color: '#7D3C98' },
     { name: 'Welder', color: '#9B59B6' },
@@ -185,9 +155,6 @@ export class RoleService {
     { name: 'Mason', color: '#5D6D7E' },
     { name: 'Electrician', color: '#F39C12' },
 
-    // ============================
-    // Agriculture & Environment Roles
-    // ============================
     { name: 'Farmer', color: '#28B463' },
     { name: 'Agricultural Technician', color: '#1D8348' },
     { name: 'Horticulturist', color: '#27AE60' },
@@ -198,9 +165,6 @@ export class RoleService {
     { name: 'Fisheries Manager', color: '#1ABC9C' },
     { name: 'Agronomist', color: '#16A085' },
 
-    // ============================
-    // Hospitality, Retail & Culinary Roles
-    // ============================
     { name: 'Restaurant Manager', color: '#F39C12' },
     { name: 'Hotel Manager', color: '#F1C40F' },
     { name: 'Executive Chef', color: '#F1C40F' },
@@ -217,9 +181,6 @@ export class RoleService {
     { name: 'Concierge', color: '#F7DC6F' },
     { name: 'Travel Agent', color: '#F8C471' },
 
-    // ============================
-    // Arts, Entertainment & Sports Roles
-    // ============================
     { name: 'Musician', color: '#9B59B6' },
     { name: 'Actor', color: '#8E44AD' },
     { name: 'Dancer', color: '#7D3C98' },
@@ -239,9 +200,6 @@ export class RoleService {
     { name: 'Podcaster', color: '#F39C12' },
     { name: 'Radio Host', color: '#F1C40F' },
 
-    // ============================
-    // Public Sector, Government & Non-Profit Roles
-    // ============================
     { name: 'Public Administrator', color: '#E67E22' },
     { name: 'Diplomat', color: '#D35400' },
     { name: 'Policy Advisor', color: '#F5B041' },
@@ -249,9 +207,6 @@ export class RoleService {
     { name: 'Charity Fundraiser', color: '#D68910' },
     { name: 'Community Organizer', color: '#34495E' },
 
-    // ============================
-    // Miscellaneous / Other Roles
-    // ============================
     { name: 'Real Estate Agent', color: '#2ECC71' },
     { name: 'Urban Planner', color: '#27AE60' },
     { name: 'Event Planner', color: '#1ABC9C' },
@@ -270,7 +225,6 @@ export class RoleService {
     { name: 'Other', color: '#BADA55' }
   ];
 
-  // Return roles sorted alphabetically by the 'name' property
   getRoles() {
     return this.roles.sort((a, b) => a.name.localeCompare(b.name));
   }

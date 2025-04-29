@@ -1,13 +1,10 @@
 <div #tableContainer class="job-list-container">
 
-  <!-- Simple Heading -->
   <h1 class="page-title">
     <i class="fas fa-clipboard-list"></i> Job Applications
   </h1>
 
-  <!-- Combined row: Filters + Table Controls -->
   <div class="header-bar">
-    <!-- Filter Container -->
     <div class="filter-container">
       <input
         type="text"
@@ -47,8 +44,7 @@
     <button (click)="logout()" class="btn-logout">
       <i class="fas fa-sign-out-alt"></i> Logout
     </button>
-    
-    <!-- Table Controls (Add New + Export) -->
+
     <div class="table-controls">
       <a routerLink="/analytics" class="btn-primary">
         <i class="fas fa-plus"></i> Analytics
@@ -62,7 +58,6 @@
     </div>
   </div>
 
-  <!-- Table of Jobs -->
   <table class="job-table">
     <thead>
       <tr>
@@ -101,13 +96,11 @@
     </tbody>
   </table>
 
-  <!-- Empty State -->
   <div *ngIf="jobs.length === 0" class="empty-state">
     <i class="fas fa-briefcase fa-3x"></i>
     <p>No job applications found. Start by adding a new application!</p>
   </div>
 
-  <!-- Pagination -->
   <div class="pagination-container">
     <button
       (click)="prevPage()"

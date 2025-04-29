@@ -184,7 +184,6 @@ export class FeedbackInsightsComponent implements OnInit {
   }
 
   exportData(): void {
-    // Export detailed feedback to CSV.
     const csvRows: string[] = [];
     const headers = ['Job Title', 'Company', 'Status', 'Feedback Summary', 'Detailed Feedback', 'Created At'];
     csvRows.push(headers.join(','));

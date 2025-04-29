@@ -1,4 +1,3 @@
-/* ========== Body & Container ========== */
 body {
   background: #F3F4F6;
   color: #1F2937;
@@ -20,7 +19,6 @@ html, body {
   flex-direction: column;
 }
 
-/* ========== Heading & Subtitle ========== */
 .form-heading {
   text-align: center;
   margin-bottom: 5px;
@@ -34,7 +32,6 @@ html, body {
   font-size: 14px;
 }
 
-/* ========== Form Card ========== */
 .job-form-container form {
   background: #FAFAFA;
   border-radius: 8px;
@@ -42,7 +39,6 @@ html, body {
   padding: 20px;
 }
 
-/* ========== Two-Column Layout ========== */
 .form-row {
   display: flex;
   gap: 20px;
@@ -61,14 +57,12 @@ html, body {
   position: relative;
 }
 
-/* Required Asterisk */
 .required::after {
   content: "*";
   color: red;
   margin-left: 4px;
 }
 
-/* ========== Inputs & Labels ========== */
 .form-group label {
   font-weight: 600;
   margin-bottom: 5px;
@@ -83,7 +77,6 @@ html, body {
   font-size: 14px;
 }
 
-/* ========== Feedback Section ========== */
 .feedback-section {
   background: #f9f9f9;
   border: 1px dashed #E5E7EB;
@@ -106,14 +99,13 @@ html, body {
   color: #666;
 }
 
-/* ========== Additional Strengths as a Chain ========== */
 .strengths-improvements-container {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .priority-strength-improvement input {
-  width: 250px; /* same size as additional inputs */
+  width: 250px;
 }
 .chain-add-icon {
   display: inline-block;
@@ -161,7 +153,6 @@ html, body {
   color: #ff1a1a;
 }
 
-/* ========== Suggestions (Autocomplete) ========== */
 .suggestions {
   position: absolute;
   top: 100%;
@@ -187,7 +178,6 @@ html, body {
   background: #f0f0f0;
 }
 
-/* ========== Interview Q&A Section ========== */
 .interview-qa-section {
   margin-top: 15px;
   padding: 15px;
@@ -241,7 +231,6 @@ html, body {
   background-color: #ff2f2f;
 }
 
-/* ========== Form Actions ========== */
 .form-actions {
   display: flex;
   gap: 10px;
@@ -275,7 +264,6 @@ html, body {
   color: #fff;
 }
 
-/* ========== Error Message ========== */
 .error-message {
   margin-top: 15px;
   color: #ff4d4d;

@@ -1,5 +1,4 @@
 <div class="job-form-container">
-  <!-- Main Heading & Subtitle -->
   <h2 class="form-heading">
     {{ isEditMode ? 'Edit Job Application' : 'New Job Application' }}
   </h2>
@@ -7,12 +6,9 @@
     Please fill out the details below to track your application.
   </p>
 
-  <!-- Bind ngSubmit with the form reference -->
   <form (ngSubmit)="submitForm(jobForm)" #jobForm="ngForm">
-    <!-- Hidden field for user ID -->
     <input type="hidden" [(ngModel)]="job.user_id" name="user_id" />
 
-    <!-- Row 1: Job Title & Company -->
     <div class="form-row">
       <div class="form-group">
         <label class="required">Job Title</label>
@@ -23,7 +19,6 @@
           required
           placeholder="e.g., Software Engineer, Frontend Developer"
         />
-        <!-- Show error if field is touched or form submitted and invalid -->
         <div *ngIf="(jobForm.controls['job_title']?.touched || jobForm.submitted) && jobForm.controls['job_title']?.invalid" class="error-message">
           Job Title is required.
         </div>
@@ -43,7 +38,6 @@
       </div>
     </div>
 
-    <!-- Row 2: Role Category & Status -->
     <div class="form-row">
       <div class="form-group">
         <label class="required">Role Category</label>
@@ -75,15 +69,12 @@
       </div>
     </div>
 
-    <!-- Row: Date Inputs & Feedback Summary -->
     <div class="form-row">
       <div class="form-group date-group">
-        <!-- For Applied: 1 input -->
         <ng-container *ngIf="job.status === 'applied'">
           <label>Applied Date</label>
           <input type="date" [(ngModel)]="job.applied_date" name="applied_date" />
         </ng-container>
-        <!-- For Interview: 2 inputs -->
         <ng-container *ngIf="job.status === 'interview'">
           <div class="date-row">
             <div class="date-col">
@@ -96,7 +87,6 @@
             </div>
           </div>
         </ng-container>
-        <!-- For Offer: 3 inputs -->
         <ng-container *ngIf="job.status === 'offer'">
           <div class="date-row">
             <div class="date-col">
@@ -113,7 +103,6 @@
             </div>
           </div>
         </ng-container>
-        <!-- For Accepted: 4 inputs -->
         <ng-container *ngIf="job.status === 'accepted'">
           <div class="date-row">
             <div class="date-col">
@@ -134,7 +123,6 @@
             </div>
           </div>
         </ng-container>
-        <!-- For Rejected: 4 inputs -->
         <ng-container *ngIf="job.status === 'rejected'">
           <div class="date-row">
             <div class="date-col">
@@ -168,7 +156,6 @@
       </div>
     </div>
 
-    <!-- Single Column: Notes -->
     <div class="form-group">
       <label>
         {{ job.status === 'offer' || job.status === 'accepted' || job.status === 'rejected' ? 'General Notes' : 'Notes' }}
@@ -181,11 +168,9 @@
       ></textarea>
     </div>
 
-    <!-- Detailed Feedback Section (for rejected/accepted/offer) -->
     <div *ngIf="job.status === 'rejected' || job.status === 'accepted' || job.status === 'offer'" class="feedback-section">
       <h3>Detailed Feedback</h3>
 
-      <!-- Feedback Category -->
       <div class="form-group" *ngIf="filteredCategories.length > 0">
         <label>Feedback Category</label>
         <select [(ngModel)]="job.feedback.category_id" name="feedbackCategory" (change)="onStatusChange()">
@@ -194,7 +179,6 @@
         </select>
       </div>
 
-      <!-- Detailed Feedback Notes -->
       <div class="form-group">
         <label>
           Detailed Feedback Notes
@@ -208,7 +192,6 @@
         ></textarea>
       </div>
 
-      <!-- Key Improvements (Only for Rejected) -->
       <div class="form-group" *ngIf="job.status === 'rejected'">
         <label>Key Improvements</label>
         <div class="strengths-improvements-container">
@@ -242,7 +225,6 @@
         </div>
       </div>
 
-      <!-- Key Strengths (Only for Accepted/Offer) -->
       <div class="form-group" *ngIf="job.status === 'accepted' || job.status === 'offer'">
         <label>Key Strengths</label>
         <div class="strengths-improvements-container">
@@ -277,7 +259,6 @@
       </div>
     </div>
 
-    <!-- Button to toggle Interview Q&A section (if applicable) -->
     <div *ngIf="job.status === 'rejected' || job.status === 'accepted' || job.status === 'offer' || job.status === 'interview'">
       <div class="form-group">
         <button type="button" class="secondary-button" (click)="toggleInterviewQA()">
@@ -286,7 +267,6 @@
       </div>
     </div>
 
-    <!-- Interview Q&A Section -->
     <div *ngIf="showInterviewQASection" class="interview-qa-section">
       <h3>Interview Q&A</h3>
       <div class="selected-qa" *ngIf="selectedQA.length > 0">
@@ -326,7 +306,6 @@
       </div>
     </div>
 
-    <!-- Form Actions -->
     <div class="form-actions">
       <button type="submit" class="primary-button">
         {{ isEditMode ? 'Update Application' : 'Create Application' }}
@@ -337,7 +316,6 @@
     </div>
   </form>
 
-  <!-- Error Message -->
   <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
   </div>

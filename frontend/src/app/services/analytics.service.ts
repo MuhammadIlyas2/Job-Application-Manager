@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AuthService } from './auth.service';  // Inject AuthService
+import { AuthService } from './auth.service';
 
 
 @Injectable({
@@ -13,7 +13,7 @@ export class AnalyticsService {
   constructor(private http: HttpClient, private authService: AuthService) { }
 
   private getAuthHeaders(): HttpHeaders {
-    const token = this.authService.getToken(); // Use AuthService for token retrieval
+    const token = this.authService.getToken();
     return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
   }
 
@@ -25,7 +25,6 @@ export class AnalyticsService {
     return this.http.get(`${this.baseUrl}/status-trends`, { headers: this.getAuthHeaders() });
   }
 
-  // Updated to accept optional query parameters
   getFeedbackInsights(params?: any): Observable<any> {
     const headers = this.getAuthHeaders();
     let queryParams = "";

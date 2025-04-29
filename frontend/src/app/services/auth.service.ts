@@ -26,15 +26,15 @@ export class AuthService {
   }
 
   saveToken(token: string): void {
-    localStorage.setItem('token', token);  // ✅ Always save the latest token
+    localStorage.setItem('token', token);
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');  // ✅ Retrieve the latest token
+    return localStorage.getItem('token');
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();  // ✅ Returns true if token exists
+    return !!this.getToken();
   }
 
   getCurrentUser(): Observable<any> {

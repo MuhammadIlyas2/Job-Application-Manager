@@ -14,8 +14,6 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./job-form.component.css']
 })
 export class JobFormComponent {
-  // Initialize job with default values.
-  // In your JobFormComponent (job-form.component.ts)
   job: any = {
     job_title: '',
     company: '',
@@ -27,7 +25,6 @@ export class JobFormComponent {
     offer_date: '',
     accepted_date: '',
     rejected_date: '',
-    // Initialize role_category as an empty string to force the default option.
     role_category: '',
     feedback: {
       id: undefined,
@@ -48,14 +45,12 @@ export class JobFormComponent {
   isEditMode = false;
   errorMessage = '';
 
-  // Interview Q&A properties
   showInterviewQASection = false;
   selectedQA: { id?: number; question: string; answer: string }[] = [];
   qaSuggestions: { [index: number]: any[] } = {};
   questionBank: any[] = [];
   usedQuestionIds = new Set<number>();
 
-  // Additional Strengths/Improvements properties
   showAdditionalStrengthInput: boolean = false;
   tempAdditionalStrength: string = '';
   showAdditionalImprovementInput: boolean = false;
@@ -78,12 +73,10 @@ export class JobFormComponent {
       this.isEditMode = true;
       this.loadJob(jobId);
       this.fetchRecommendedQuestions(+jobId);
-      // Load existing Interview Q&A if applicable.
       this.jobService.getInterviewQAs(+jobId).subscribe({
         next: (res) => { this.selectedQA = res; },
         error: (err) => console.error('Failed to load interview questions', err)
       });
-      // Load strengths & improvements.
       this.jobService.getFeedbackStrengths(+jobId).subscribe({
         next: (res) => {
           this.job.feedback.priority_strength = res.priority || '';
@@ -208,7 +201,6 @@ export class JobFormComponent {
       return;
     }
   
-    // Prepare the job and feedback data
     const jobData = { ...this.job };
     const feedbackData = {
       notes: this.job.feedbackSummary.substring(0, 50).trim(), // Trim whitespace
@@ -224,7 +216,6 @@ export class JobFormComponent {
       }
     };
   
-    // Check if feedback is truly empty
     const isFeedbackEmpty = 
       feedbackData.notes === '' &&
       feedbackData.category_id === null &&
@@ -235,9 +226,7 @@ export class JobFormComponent {
       feedbackData.improvements.additional.length === 0;
   
     delete jobData.feedback;
-  
-    // Rest of date handling remains unchanged...
-  
+    
     const operation = this.isEditMode
       ? this.jobService.updateJob(this.job.id, jobData)
       : this.jobService.createJob(jobData);
@@ -247,13 +236,11 @@ export class JobFormComponent {
         const jobId = this.isEditMode ? this.job.id : res.job.id;
         
         if (this.isEditMode && this.job.feedback?.id && isFeedbackEmpty) {
-          // Delete existing feedback if it's now empty
           this.jobService.deleteFeedback(jobId).subscribe({
             next: () => console.log('Removed empty feedback'),
             error: (err) => console.error('Failed to remove feedback', err)
           });
         } else if (!isFeedbackEmpty) {
-          // Only create/update if feedback has content
           this.handleFeedback(jobId, feedbackData);
         }
   
@@ -293,7 +280,6 @@ export class JobFormComponent {
     });
   }
 
-  // Additional Strengths/Improvements Methods
   addAdditionalStrength(): void {
     this.job.feedback.additional_strengths.push('');
   }
@@ -367,7 +353,6 @@ export class JobFormComponent {
     }
   }
 
-  // Utility Methods
   private setCurrentUser(): void {
     this.authService.getCurrentUser().subscribe({
       next: (user) => (this.job.user_id = user.id),
@@ -379,7 +364,6 @@ export class JobFormComponent {
     console.error(err);
   }
 
-  // TrackBy Function
   trackByIndex(index: number, item: any): number {
     return index;
   }

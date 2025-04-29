@@ -26,8 +26,8 @@ describe('JobService', () => {
       ]
     });
 
-    service       = TestBed.inject(JobService);
-    httpMock      = TestBed.inject(HttpTestingController);
+    service = TestBed.inject(JobService);
+    httpMock = TestBed.inject(HttpTestingController);
     authServiceSpy = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
     authServiceSpy.getToken.and.returnValue(fakeToken);
   });
@@ -77,7 +77,6 @@ describe('JobService', () => {
 
   it('should delete a job', () => {
     service.deleteJob(99).subscribe();
-    // note: URL in your service has an extra /jobs/—adjust if needed
     const req = expectAuthHeader(`${baseUrl}/jobs/99`, 'DELETE');
     req.flush({ message: 'deleted' });
   });

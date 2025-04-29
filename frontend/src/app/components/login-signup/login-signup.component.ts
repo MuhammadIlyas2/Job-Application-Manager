@@ -13,7 +13,7 @@ import { RouterLink } from '@angular/router';
   styleUrl: './login-signup.component.css'
 })
 export class LoginSignupComponent implements OnInit {
-  isSignup = false; // Controls the toggle between login and signup
+  isSignup = false;
   errorMessage = '';
 
   userData = {
@@ -55,7 +55,6 @@ export class LoginSignupComponent implements OnInit {
   }
 
   signup(): void {
-    // Reset errors
     this.formErrors = {
       fullName: '',
       username: '',
@@ -66,7 +65,6 @@ export class LoginSignupComponent implements OnInit {
 
     let isValid = true;
 
-    // Validation
     if (!this.userData.fullName) {
       this.formErrors.fullName = 'Full name is required';
       isValid = false;
@@ -100,7 +98,6 @@ export class LoginSignupComponent implements OnInit {
 
     if (!isValid) return;
 
-    // Prepare backend payload
     const payload = {
       fullname: this.userData.fullName,
       username: this.userData.username,

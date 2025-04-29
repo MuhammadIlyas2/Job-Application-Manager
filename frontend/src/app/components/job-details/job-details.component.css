@@ -75,14 +75,12 @@ html, body {
     opacity: 0.9;
   }
   
-  /* Card footer */
   .card-footer {
     background: #f7f7f7;
     padding: 15px 20px;
     text-align: right;
   }
   
-  /* Button styles */
   .btn {
     padding: 10px 20px;
     border: none;
