@@ -41,7 +41,6 @@
           <th>Status</th>
           <th>Feedback Summary</th>
           <th>Detailed Feedback</th>
-          <th>Date</th>
         </tr>
       </thead>
       <tbody>
@@ -51,7 +50,6 @@
           <td>{{ entry.status }}</td>
           <td>{{ entry.notes }}</td>
           <td>{{ entry.detailed_feedback }}</td>
-          <td>{{ entry.created_at | date:'shortDate' }}</td>
         </tr>
       </tbody>
     </table>
