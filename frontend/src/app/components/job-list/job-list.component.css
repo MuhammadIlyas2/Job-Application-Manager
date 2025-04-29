@@ -258,9 +258,9 @@ body {
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
-  position: relative;
-  top: -80px;
-  right: -40%;
+  position: absolute;
+  top: 20px;
+  right: 31px;
   align-items: center;
   gap: 6px;
 }
