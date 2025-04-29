@@ -1,4 +1,3 @@
-/* feedback-insights.component.css */
 .feedback-insights-dashboard {
   max-width: 1200px;
   margin: 20px auto;
@@ -131,7 +130,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  text-decoration: none; /* for routerLink or <a> */
+  text-decoration: none;
 }
 
 .btn-primary:hover {
@@ -140,7 +139,6 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Outline / Ghost version of the primary button */
 .btn-primary.btn-outline {
   background: transparent;
   color: #6C63FF;
@@ -167,7 +165,6 @@
   font-size: x-large;
 }
 
-/* Filter bar (View by Role) */
 .filter-bar {
   display: flex;
   flex-wrap: wrap;

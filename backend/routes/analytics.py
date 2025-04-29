@@ -1,4 +1,3 @@
-# analytics.py
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from extensions import db
@@ -73,14 +72,12 @@ def get_feedback_insights():
     current_user_id = get_jwt_identity()
     role = request.args.get('role', None)
 
-    # Build shared WHERE clause and params
     where_clause = "ja.user_id = :user_id"
     params = {"user_id": current_user_id}
     if role:
         where_clause += " AND ja.role_category = :role"
         params["role"] = role
 
-    # 1. Aggregated feedback counts by category type
     query1 = text(f"""
         SELECT fc.type, COUNT(*) as count
         FROM feedback f
@@ -93,7 +90,6 @@ def get_feedback_insights():
     feedback_counts = {row[0]: row[1] for row in result1}
     print("DEBUG: Feedback counts by category:", feedback_counts)
 
-    # 2. Top strengths
     query2 = text(f"""
         SELECT fs.strength, COUNT(*) as count
         FROM feedback_strength fs
@@ -108,7 +104,6 @@ def get_feedback_insights():
     top_strengths = [{"strength": row[0], "count": row[1]} for row in result2]
     print("DEBUG: Top strengths:", top_strengths)
 
-    # 3. Top improvements
     query3 = text(f"""
         SELECT fi.improvement, COUNT(*) as count
         FROM feedback_improvement fi
@@ -123,7 +118,6 @@ def get_feedback_insights():
     top_improvements = [{"improvement": row[0], "count": row[1]} for row in result3]
     print("DEBUG: Top improvements:", top_improvements)
 
-    # 4. Detailed feedback entries
     query4 = text(f"""
         SELECT ja.job_title, ja.company, f.notes, f.detailed_feedback, ja.status, f.created_at
         FROM feedback f
@@ -143,7 +137,6 @@ def get_feedback_insights():
     } for row in result4]
     print("DEBUG: Number of detailed feedback entries:", len(detailed_feedback))
 
-    # 5. Recommendations based on top improvement
     recommendations = []
     if top_improvements:
         top_improve = top_improvements[0]["improvement"].lower()

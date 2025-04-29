@@ -1,22 +1,16 @@
 <div class="job-details-wrapper" *ngIf="job; else errorTemplate">
   <div class="card">
-    <!-- Header -->
 <header class="card-header">
-  <!-- Main heading in white, on a purple background -->
   <h2 class="main-heading">Job Details</h2>
 
-  <!-- Sub-heading: job title and company, also in white but slightly larger -->
   <div class="job-title-company">
     <span class="job-title">{{ job.job_title }}</span>
     <span class="company-name"> at {{ job.company }}</span>
   </div>
 </header>
 
-    <!-- Card Body -->
     <div class="card-body">
-      <!-- Row 1: Summary Info & Timeline -->
       <div class="summary-timeline-row">
-        <!-- Left: Basic Info -->
         <div class="summary-info">
           <div class="info-item">
             <label>Role Category:</label>
@@ -36,11 +30,9 @@
           </div>
         </div>
 
-        <!-- Right: Timeline -->
         <div class="timeline-section">
           <h3>Application Timeline</h3>
           <div class="status-timeline">
-            <!-- Applied Step -->
             <div class="timeline-step" data-step="applied" [class.active]="job.status === 'applied'">
               <div class="circle"></div>
               <span>Applied</span>
@@ -48,7 +40,6 @@
             </div>
             <div class="timeline-line"></div>
 
-            <!-- Interview Step -->
             <div class="timeline-step" data-step="interview" [class.active]="job.status === 'interview'">
               <div class="circle"></div>
               <span>Interview</span>
@@ -56,7 +47,6 @@
             </div>
             <div class="timeline-line"></div>
 
-            <!-- Offer Step -->
             <div class="timeline-step" data-step="offer" [class.active]="job.status === 'offer'">
               <div class="circle"></div>
               <span>Offer</span>
@@ -64,7 +54,6 @@
             </div>
             <div class="timeline-line"></div>
 
-            <!-- Accepted Step -->
             <div class="timeline-step" data-step="accepted" [class.active]="job.status === 'accepted'">
               <div class="circle"></div>
               <span>Accepted</span>
@@ -72,7 +61,6 @@
             </div>
             <div class="timeline-line"></div>
 
-            <!-- Rejected Step -->
             <div class="timeline-step" data-step="rejected" [class.active]="job.status === 'rejected'">
               <div class="circle"></div>
               <span>Rejected</span>
@@ -80,18 +68,16 @@
             </div>
           </div>
         </div>
-      </div> <!-- End Row 1 -->
+      </div>
 
-      <!-- Row 2: Feedback & Interview Q&A (side-by-side) -->
       <div class="feedback-qa-row">
-        <!-- Left: Basic Feedback -->
         <div class="basic-feedback-col">
           <h3>Feedback</h3>
           <div class="feedback-grid">
             <div class="feedback-item">
               <span class="label">Category:</span>
               <span class="value">
-                {{ job.feedback?.category_name || 'No category' }} <!-- ({{ job.feedback?.category_type || 'N/A' }}) -->
+                {{ job.feedback?.category_name || 'No category' }}
               </span>
             </div>
             <div class="feedback-item">
@@ -107,7 +93,6 @@
           </div>
         </div>
 
-        <!-- Right: Interview Q&A -->
         <div class="interview-qa-col">
           <h3>Interview Q&A</h3>
           <div *ngIf="interviewQuestions && interviewQuestions.length > 0; else noQA">
@@ -120,11 +105,9 @@
             <p>No Q/A added in that section.</p>
           </ng-template>
         </div>
-      </div> <!-- End Row 2 -->
+      </div>
 
-      <!-- Row 3: Key Improvements / Key Strengths -->
       <div class="key-points-row">
-        <!-- If Rejected: Key Improvements -->
         <div class="key-improvements" *ngIf="job.status === 'rejected'">
           <h3>Key Improvements</h3>
           <div class="value" *ngIf="feedbackImprovements?.priority || (feedbackImprovements.additional.length > 0); else noImprovements">
@@ -143,7 +126,6 @@
           </ng-template>
         </div>
 
-        <!-- If Accepted/Offer: Key Strengths -->
         <div class="key-strengths" *ngIf="job.status === 'accepted' || job.status === 'offer'">
           <h3>Key Strengths</h3>
           <div class="value" *ngIf="feedbackStrengths?.priority || (feedbackStrengths.additional.length > 0); else noStrengths">
@@ -161,15 +143,14 @@
             <div class="value">No strengths added.</div>
           </ng-template>
         </div>
-      </div> <!-- End Row 3 -->
-    </div> <!-- End Card Body -->
+      </div>
+    </div>
 
-    <!-- Footer -->
     <footer class="card-footer">
       <button class="btn btn-primary" (click)="goBack()">Back to List</button>
     </footer>
-  </div> <!-- End Card -->
-</div> <!-- End Wrapper -->
+  </div>
+</div>
 
 <ng-template #errorTemplate>
   <div class="error">{{ errorMessage }}</div>

@@ -33,9 +33,7 @@ export class JobDetailsComponent {
     if (jobId) {
       this.jobService.getJobById(+jobId).subscribe({
         next: (res) => {
-          // Convert applied_date (and other dates if needed) to the consistent format
           res.applied_date = res.applied_date ? this.formatDate(res.applied_date) : 'N/A';
-          // (Optionally, you could also convert created_at here if you wish.)
           this.job = res;
           this.loadFeedbackStrengths(+jobId);
           this.loadFeedbackImprovements(+jobId);
@@ -98,10 +96,6 @@ export class JobDetailsComponent {
     });
   }
 
-  /**
-   * Returns the formatted date for the given status.
-   * For 'applied', it uses job.applied_date; for other statuses, it looks up the history.
-   */
   getStatusDate(status: string): string {
     if (status === 'applied') {
       return this.job.applied_date ? this.job.applied_date : 'N/A';
@@ -110,12 +104,8 @@ export class JobDetailsComponent {
     return record && record.status_date ? this.formatDate(record.status_date) : '--';
   }
 
-  /**
-   * Converts a date string to "M/D/YYYY" format.
-   */
   private formatDate(dateStr: string): string {
     const dateObj = new Date(dateStr);
-    // Options for a consistent format like "3/17/2025"
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'numeric', day: 'numeric' };
     return dateObj.toLocaleDateString('en-US', options);
   }

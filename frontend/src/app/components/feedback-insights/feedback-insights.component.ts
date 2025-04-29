@@ -1,4 +1,3 @@
-// src/app/components/feedback-insights/feedback-insights.component.ts
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { AnalyticsService } from '../../services/analytics.service';
 import { Chart, registerables, ChartConfiguration } from 'chart.js';
@@ -8,7 +7,6 @@ import { CommonModule } from '@angular/common';
 import { RoleService } from '../../services/role.service';
 Chart.register(...registerables);
 
-// Optional: Define interfaces for strengths and improvements for better type safety.
 interface TopStrength {
   strength: string;
   count: number;
@@ -43,11 +41,9 @@ export class FeedbackInsightsComponent implements OnInit {
   constructor(private analyticsService: AnalyticsService) {}
 
   ngOnInit(): void {
-    // Fetch only the roles the user has applied for
     this.analyticsService.getAvailableRoles().subscribe({
       next: (roles: string[]) => {
         this.roles = roles;
-        // After roles loaded, fetch insights
         this.loadFeedbackInsights();
       },
       error: err => {
@@ -67,7 +63,6 @@ export class FeedbackInsightsComponent implements OnInit {
     ).subscribe({
       next: insights => {
         this.feedbackInsights = insights;
-        // Render charts after view updates
         setTimeout(() => {
           this.renderCategoryChart();
           this.renderStrengthsChart();
@@ -86,12 +81,10 @@ export class FeedbackInsightsComponent implements OnInit {
     if (this.categoryChart) {
       this.categoryChart.destroy();
     }
-    // Get the feedback counts object; include all categories.
     const counts: { [key: string]: number } = this.feedbackInsights.feedback_counts || {};
     const labels: string[] = Object.keys(counts);
     const data: number[] = labels.map((key: string) => counts[key]);
 
-    // Map each label to a color.
     const backgroundColors: string[] = labels.map((label: string) => {
       const lower = label.toLowerCase();
       if (lower === 'positive') {
@@ -101,7 +94,7 @@ export class FeedbackInsightsComponent implements OnInit {
       } else if (lower === 'neutral') {
         return 'grey';
       } else {
-        return 'blue'; // default for any other category
+        return 'blue'; 
       }
     });
 
@@ -117,7 +110,7 @@ export class FeedbackInsightsComponent implements OnInit {
       options: {
         plugins: {
           legend: { position: 'bottom' },
-          title: { display: false } // Removed inbuilt title
+          title: { display: false } 
         }
       }
     };
@@ -126,14 +119,11 @@ export class FeedbackInsightsComponent implements OnInit {
   }
 
   renderStrengthsChart(): void {
-    // If there are no top strengths, exit.
     if (!this.feedbackInsights.top_strengths) return;
     if (this.strengthsChart) {
       this.strengthsChart.destroy();
     }
-    // Cast the top_strengths array to our defined interface.
     const strengthsArray = this.feedbackInsights.top_strengths as TopStrength[];
-    // Sort alphabetically (case-insensitive) by strength.
     const sortedStrengths = strengthsArray.sort((a: TopStrength, b: TopStrength) =>
       a.strength.toLowerCase().localeCompare(b.strength.toLowerCase())
     );
@@ -153,7 +143,7 @@ export class FeedbackInsightsComponent implements OnInit {
       options: {
         plugins: {
           legend: { display: false },
-          title: { display: false } // Removed inbuilt title
+          title: { display: false } 
         },
         scales: { y: { beginAtZero: true } }
       }
@@ -184,7 +174,7 @@ export class FeedbackInsightsComponent implements OnInit {
       options: {
         plugins: {
           legend: { display: false },
-          title: { display: false } // Removed inbuilt title
+          title: { display: false } 
         },
         scales: { y: { beginAtZero: true } }
       }
@@ -214,16 +204,13 @@ export class FeedbackInsightsComponent implements OnInit {
     saveAs(blob, 'FeedbackInsights.csv');
   }
 
-  // Helper method to check if a string starts with an alphabetical character.
   isValidText(value: string | null | undefined): boolean {
     if (!value) return false;
     const trimmed = value.trim();
-    // Remove zero-width spaces and BOM characters.
     const normalized = trimmed.replace(/[\u200B-\u200D\uFEFF]/g, '');
     return /^[A-Za-z]/.test(normalized);
   }
 
-  // Returns the display text; if invalid or blank, returns the fallback.
   getDisplayText(value: string | null | undefined, fallback: string = 'N/A'): string {
     return this.isValidText(value) ? value!.trim() : fallback;
   }

@@ -9,9 +9,8 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
-    print(f"🔥 Incoming Signup Request: {data}")  # Debugging
+    print(f"🔥 Incoming Signup Request: {data}") 
 
-    # Validate required fields
     if not data or 'username' not in data or 'email' not in data or 'password' not in data:
         print("❌ Missing required fields in request")
         return jsonify({'message': 'Missing required fields'}), 400
@@ -23,15 +22,14 @@ def signup():
 
     print(f"🔍 Checking if user exists: {username}, {email}")
 
-    if User.query.filter(User.username == username).first():  # ✅ Remove extra ()
+    if User.query.filter(User.username == username).first(): 
       print("❌ Username already exists")
       return jsonify({'message': 'Username already exists'}), 400
 
-    elif User.query.filter(User.email == email).first():  # ✅ Use `elif` instead of `else if`
+    elif User.query.filter(User.email == email).first(): 
       print("❌ Email already exists")
       return jsonify({'message': 'Email already exists'}), 400
 
-    # Hash the password
     password_hash = generate_password_hash(password)
     
     try:
@@ -54,7 +52,7 @@ def login():
     user = User.query.filter((User.username == username_or_email) | (User.email == username_or_email)).first()
 
     if user and check_password_hash(user.password_hash, password):
-        access_token = create_access_token(identity=str(user.id))  # ✅ Convert ID to string
+        access_token = create_access_token(identity=str(user.id))
         return jsonify({'message': 'Logged in successfully', 'token': access_token, 'user': user.serialize()}), 200
     else:
         return jsonify({'message': 'Invalid credentials'}), 401

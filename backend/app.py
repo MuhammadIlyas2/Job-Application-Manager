@@ -16,23 +16,20 @@ app.config['JWT_SECRET_KEY'] = 'your_secret_key_here'
 db.init_app(app)
 jwt = JWTManager(app)
 
-# ✅ Ensure JWT is verified in every request
 @app.before_request
 def log_request_info():
     print(f"🔥 Incoming Request: {request.method} {request.url}")
     print(f"🔹 Headers: {dict(request.headers)}")
     if "Authorization" in request.headers:
-        token = request.headers["Authorization"].split(" ")[1]  # Extract token
+        token = request.headers["Authorization"].split(" ")[1]  
         try:
-            decoded_token = decode_token(token)  # ✅ Decode token to verify its contents
+            decoded_token = decode_token(token)  
             print(f"✅ JWT Decoded: {decoded_token}")
         except Exception as e:
             print(f"❌ JWT Error: {str(e)}")
 
-# ✅ CORS Configuration
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:4200"}}, supports_credentials=True)
 
-# Register Blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(jobs_bp, url_prefix='/api/jobs')
 app.register_blueprint(analytics_bp, url_prefix='/api/analytics')

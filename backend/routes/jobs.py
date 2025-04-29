@@ -9,8 +9,6 @@ from datetime import datetime
 
 jobs_bp = Blueprint('jobs', __name__)
 
-# --------------------- Utility function to update strengths & improvements ---------------------
-# --------------------- Utility function to update strengths & improvements ---------------------
 def update_feedback_extras(feedback_id, extras, table_name):
     """
     Delete all current rows for the given feedback_id in the specified table,
@@ -18,7 +16,7 @@ def update_feedback_extras(feedback_id, extras, table_name):
     'extras' is expected to be a dict with keys "priority" (string) and "additional" (list of strings).
     'table_name' should be either "feedback_strength" or "feedback_improvement".
     """
-    # Determine the correct column name based on the table
+
     if table_name == "feedback_strength":
         column_name = "strength"
     elif table_name == "feedback_improvement":
@@ -26,17 +24,14 @@ def update_feedback_extras(feedback_id, extras, table_name):
     else:
         raise ValueError("Invalid table name: must be 'feedback_strength' or 'feedback_improvement'")
     
-    # Delete existing entries for this feedback
     delete_query = text(f"DELETE FROM {table_name} WHERE feedback_id = :feedback_id")
     db.session.execute(delete_query, {"feedback_id": feedback_id})
     
-    # Prepare the insert query. Use 'is_priority' to mark the priority row.
     insert_query = text(f"""
         INSERT INTO {table_name} (feedback_id, is_priority, {column_name})
         VALUES (:feedback_id, :is_priority, :value)
     """)
     
-    # Insert priority item (if provided)
     if extras.get("priority"):
         priority_value = extras["priority"].strip()
         if priority_value:
@@ -46,7 +41,6 @@ def update_feedback_extras(feedback_id, extras, table_name):
                 "value": priority_value
             })
     
-    # Insert each additional item (if any)
     additional = extras.get("additional", [])
     for s in additional:
         s = s.strip()
@@ -57,8 +51,6 @@ def update_feedback_extras(feedback_id, extras, table_name):
                 "value": s
             })
 
-
-# --------------------- Routes ---------------------
 
 @jobs_bp.route('', methods=['OPTIONS'])
 @jobs_bp.route('/', methods=['OPTIONS'])
@@ -82,7 +74,6 @@ def create_or_list_jobs():
         if not user:
             return jsonify({'message': 'User not found'}), 404
 
-        # Parse applied_date from data
         applied_date = datetime.strptime(data['applied_date'], "%Y-%m-%d").date() if data.get('applied_date') else None
         created_at = datetime.utcnow()
 
@@ -100,7 +91,6 @@ def create_or_list_jobs():
             db.session.add(job)
             db.session.commit()
 
-            # Insert basic feedback record (if provided)
             if 'feedback' in data and data['feedback']:
                 insert_feedback_query = text("""
                     INSERT INTO feedback (job_id, category_id, notes, detailed_feedback)
@@ -126,9 +116,6 @@ def create_or_list_jobs():
                         update_feedback_extras(feedback_id, extras["improvements"], "feedback_improvement")
                     db.session.commit()
 
-            # Insert status history records for statuses other than "applied"
-            # (The applied date is already in job.applied_date.)
-            # Expected additional fields: interview_date, offer_date, accepted_date, rejected_date.
             additional_statuses = [
                 ('interview', data.get('interview_date')),
                 ('offer', data.get('offer_date')),
@@ -155,22 +142,18 @@ def create_or_list_jobs():
             limit = request.args.get('limit', default=5, type=int)
             offset = (page - 1) * limit
 
-            # Extract filter parameters
             search = request.args.get('search', None)
             status_filter = request.args.get('status', None)
 
-            # Extract sort parameters, with defaults:
             sort_by = request.args.get('sort_by', 'created_at')
             sort_order = request.args.get('sort_order', 'desc').lower()
 
-            # Validate sort_by and sort_order
             valid_sort_by = ['applied_date', 'job_title', 'company', 'created_at']
             if sort_by not in valid_sort_by:
                 sort_by = 'created_at'
             if sort_order not in ['asc', 'desc']:
                 sort_order = 'desc'
 
-            # Build WHERE clause dynamically (using LIKE for MySQL)
             where_clauses = ["ja.user_id = :user_id"]
             params = {"user_id": current_user_id, "limit": limit, "offset": offset}
 
@@ -183,12 +166,10 @@ def create_or_list_jobs():
 
             where_clause = " AND ".join(where_clauses)
 
-            # Count query with filtering
             count_query = text(f"SELECT COUNT(*) FROM job_application ja WHERE {where_clause}")
             total_jobs = db.session.execute(count_query, params).scalar()
             total_pages = ceil(total_jobs / limit) if limit else 1
 
-            # Main query with sorting and filtering
             query = text(f"""
                 SELECT 
                     ja.id, ja.job_title, ja.company, ja.status, ja.general_notes, ja.applied_date,
@@ -288,12 +269,9 @@ def handle_feedback(job_id):
             print("DEBUG: Job not found for id:", job_id)
             return jsonify({"message": "Job not found"}), 404
 
-        # Default category_id to 100 if left blank
         if not data.get("category_id"):
             data["category_id"] = 100
 
-        # For this new design, the feedback table now stores only basic data.
-        # Strengths and improvements will be updated in their own tables.
         feedback_check_query = text("SELECT id FROM feedback WHERE job_id = :job_id")
         feedback_exists = db.session.execute(feedback_check_query, {"job_id": job_id}).fetchone()
         print("DEBUG: feedback_exists:", feedback_exists)
@@ -332,7 +310,6 @@ def handle_feedback(job_id):
         else:
             return jsonify({"message": "Unsupported method"}), 405
 
-        # Now update strengths and improvements using the new tables
         if feedback_id:
             if "strengths" in data:
                 update_feedback_extras(feedback_id, data["strengths"], "feedback_strength")
@@ -393,7 +370,6 @@ def update_job(job_id):
         if 'job_title' not in data or 'company' not in data:
             return jsonify({"message": "Missing required fields"}), 400
 
-        # Check job ownership
         job_check_query = text("SELECT user_id FROM job_application WHERE id = :job_id")
         row = db.session.execute(job_check_query, {"job_id": job_id}).fetchone()
         if not row:
@@ -402,7 +378,6 @@ def update_job(job_id):
         if db_user_id != current_user_id:
             return jsonify({"message": "Unauthorized"}), 403
 
-        # Parse applied_date
         applied_date = None
         if data.get('applied_date'):
             try:
@@ -410,7 +385,6 @@ def update_job(job_id):
             except Exception as e:
                 return jsonify({"message": "Invalid applied_date format"}), 400
 
-        # Update the job_application record
         update_query = text("""
             UPDATE job_application
             SET job_title = :job_title,
@@ -432,8 +406,6 @@ def update_job(job_id):
         })
         db.session.commit()
 
-        # Instead of deleting existing history, we now insert new status history rows.
-        # (This way, historical changes accumulate over time.)
         additional_statuses = [
             ('interview', data.get('interview_date')),
             ('offer', data.get('offer_date')),
@@ -519,16 +491,13 @@ def get_all_recommended_questions():
 @jwt_required()
 def save_interview_questions(job_id):
     try:
-        data = request.get_json()  # Expect a list of Q&A objects with 'question' and 'answer'
+        data = request.get_json()  
         if not isinstance(data, list):
             return jsonify({"message": "Expected a list of interview questions."}), 400
 
-        # Delete existing interview questions for the job
         delete_query = text("DELETE FROM job_interview_questions WHERE job_id = :job_id")
         db.session.execute(delete_query, {"job_id": job_id})
 
-        # Insert new interview questions.
-        # Check for an exact (case‑insensitive) match in QuestionBank.
         insert_query = text("""
             INSERT INTO job_interview_questions (job_id, question_id, custom_question, answer)
             VALUES (:job_id, :question_id, :custom_question, :answer)
@@ -589,7 +558,6 @@ def get_interview_questions(job_id):
 @jwt_required()
 def get_feedback_strengths(job_id):
     try:
-        # Get the feedback record for this job
         feedback = db.session.execute(
             text("SELECT id FROM feedback WHERE job_id = :job_id"),
             {"job_id": job_id}
@@ -647,7 +615,6 @@ def get_job_status_history(job_id):
             ORDER BY status_date ASC
         """)
         results = db.session.execute(query, {"job_id": job_id}).fetchall()
-        # Use row._mapping to convert each row to a dictionary
         history = [dict(row._mapping) for row in results]
         return jsonify(history), 200
     except Exception as e:
@@ -658,7 +625,6 @@ def get_job_status_history(job_id):
 @jwt_required()
 def delete_feedback(job_id):
     try:
-        # Delete associated strengths/improvements first
         db.session.execute(text("""
             DELETE FROM feedback_strength 
             WHERE feedback_id IN (
@@ -673,7 +639,6 @@ def delete_feedback(job_id):
             )
         """), {"job_id": job_id})
 
-        # Delete main feedback record
         db.session.execute(text("""
             DELETE FROM feedback 
             WHERE job_id = :job_id

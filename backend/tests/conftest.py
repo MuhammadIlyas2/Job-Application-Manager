@@ -1,5 +1,3 @@
-# tests/conftest.py
-
 import os
 import tempfile
 import pytest
@@ -10,7 +8,6 @@ from flask_jwt_extended import verify_jwt_in_request
 from app import app as flask_app
 from extensions import db
 
-# 1) Never actually create/drop anything on MySQL
 db.create_all = lambda *a, **k: None
 db.drop_all   = lambda *a, **k: None
 
@@ -22,7 +19,6 @@ def _make_protected_stub(extra=None):
      - returns {"ok": True, **extra} as JSON.
     """
     def stub(**kwargs):
-        # will 401 if there is no valid JWT
         verify_jwt_in_request()
         payload = {"ok": True}
         if extra:
@@ -30,20 +26,16 @@ def _make_protected_stub(extra=None):
         return jsonify(payload), 200
     return stub
 
-# 2) Replace each real handler with a minimal stub that accepts **kwargs
 STUBBED = {
-    # --- AUTH ---
     "auth.signup":           lambda **k: jsonify({"message": "stub"}),
     "auth.login":            lambda **k: jsonify({"token":   "stub"}),
     "auth.get_current_user": fj.jwt_required()(lambda **k: (jsonify({"id":"1","username":"stub"}), 200)),
 
-    # --- ANALYTICS ---
     "analytics.get_dashboard":         _make_protected_stub({"total_applications": 0}),
     "analytics.get_status_trends":     _make_protected_stub(),
     "analytics.get_feedback_insights": _make_protected_stub(),
     "analytics.get_available_roles":   _make_protected_stub({"roles": []}),
 
-    # --- JOBS ---
     "jobs.create_or_list_jobs":           _make_protected_stub({"jobs": []}),
     "jobs.get_job":                       _make_protected_stub({"id": 1}),              # return id=1 now
     "jobs.update_job":                    _make_protected_stub(),
@@ -60,7 +52,6 @@ STUBBED = {
     "jobs.get_job_status_history":        _make_protected_stub({"history": []}),
 }
 
-# Overwrite the app's view functions with our stubs
 for endpoint, view in STUBBED.items():
     flask_app.view_functions[endpoint] = view
 

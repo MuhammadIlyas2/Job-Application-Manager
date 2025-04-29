@@ -1,25 +1,20 @@
-/* ================== RESET & BASE LAYOUT ================== */
-
-/* Remove default margin/padding from html & body */
 html, body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    height: 100%; /* Let the wrapper/card fill the screen height if desired */
+    height: 100%;
   }
   
-  /* The wrapper can grow in height and allow scrolling if content is tall */
   .job-details-wrapper {
     min-height: 100vh;
     display: flex;
     align-items: flex-start;
     justify-content: center;
     background: #F3F4F6;
-    overflow: auto; /* ensures we can scroll if content is tall */
+    overflow: auto; 
     width: 100%;
   }
   
-  /* The card fills available space, with a max width for readability */
   .card {
     display: flex;
     flex-direction: column;
@@ -31,34 +26,31 @@ html, body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
   
-  /* Let the card-body scroll if content is tall */
   .card-body {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
   }
   
-  /* Header styling */
   .card-header {
-    background: #6C63FF; /* Purple bar at top */
-    color: #fff;         /* White text */
+    background: #6C63FF;
+    color: #fff;  
     padding: 20px;
-    /* If you'd like a left-aligned heading, remove text-align: center; */
     text-align: left;
     border-bottom: 2px solid rgba(0, 0, 0, 0.1);
   }
 
   .card-header .main-heading {
     margin: 0;
-    font-size: 1.75rem; /* slightly bigger than normal */
+    font-size: 1.75rem;
     font-weight: bold;
   }
 
   .card-header .job-title-company {
-    margin-top: 6px; /* small spacing below main heading */
+    margin-top: 6px;
     font-size: 1.3rem; 
     font-weight: normal;
-    color: #fff; /* keep text white against purple background */
+    color: #fff;
   }
 
   .job-title-company .job-title {
@@ -80,7 +72,7 @@ html, body {
 
   .job-title-company .company-name {
     font-weight: 400;
-    opacity: 0.9; /* slightly lighter to differentiate from the job title */
+    opacity: 0.9;
   }
   
   /* Card footer */
@@ -108,7 +100,6 @@ html, body {
     background: #5A54D7;
   }
   
-  /* Error message styling */
   .error {
     color: #ff4d4d;
     text-align: center;
@@ -116,10 +107,7 @@ html, body {
     font-weight: bold;
     font-size: 1rem;
   }
-  
-  /* ================== FIRST ROW: Summary & Timeline ================== */
-  
-  /* Container for the summary & timeline sections */
+    
   .summary-timeline-row {
     display: flex;
     flex-wrap: wrap;
@@ -127,7 +115,6 @@ html, body {
     margin-bottom: 20px;
   }
   
-  /* Left side: summary info (role category, dates, notes, etc.) */
   .summary-info {
     flex: 1 1 50%;
     min-width: 280px;
@@ -144,7 +131,6 @@ html, body {
     color: #1F2937;
   }
   
-  /* Right side: timeline */
   .timeline-section {
     flex: 1 1 50%;
     min-width: 280px;
@@ -156,7 +142,6 @@ html, body {
     color: #333;
   }
   
-  /* TIMELINE specifics */
   .status-timeline {
     display: flex;
     align-items: center;
@@ -175,7 +160,7 @@ html, body {
   .timeline-step .circle {
     width: 40px;
     height: 40px;
-    border: 3px solid #ccc; /* default border if not active */
+    border: 3px solid #ccc;
     border-radius: 50%;
     background: #fff;
     margin-bottom: 0.5rem;
@@ -197,7 +182,6 @@ html, body {
     margin: 0 0.25rem;
   }
   
-  /* Color-coding for each status */
   .timeline-step[data-step="applied"].active .circle {
     border-color: lightblue;
     background-color: lightblue;
@@ -219,7 +203,6 @@ html, body {
     background-color: red;
   }
   
-  /* ================== SECOND ROW: Basic Feedback & Q&A ================== */
   .feedback-qa-row {
     display: flex;
     flex-direction: row;
@@ -228,7 +211,6 @@ html, body {
     margin-bottom: 20px;
   }
   
-  /* Basic feedback (left) */
   .basic-feedback-col {
     flex: 1 1 50%;
     min-width: 280px;
@@ -255,7 +237,6 @@ html, body {
     line-height: 1.4;
   }
   
-  /* Interview Q&A (right) */
   .interview-qa-col {
     flex: 1 1 50%;
     min-width: 280px;
@@ -268,10 +249,9 @@ html, body {
   }
   .qa-entry {
     margin-bottom: 1rem;
-    font-size: 1.05rem; /* bigger text to show importance */
+    font-size: 1.05rem; 
   }
   
-  /* ================== THIRD ROW: Key Points (Improvements / Strengths) ================== */
   .key-points-row {
     display: flex;
     flex-direction: column;
@@ -279,7 +259,6 @@ html, body {
     gap: 20px;
   }
   
-  /* Shared box styling for improvements or strengths */
   .key-improvements,
   .key-strengths {
     max-width: 700px;
@@ -302,7 +281,6 @@ html, body {
     line-height: 1.5;
   }
   
-  /* Mobile adjustments if needed */
   @media (max-width: 600px) {
     .card {
       margin: 0;

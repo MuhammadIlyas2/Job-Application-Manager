@@ -1,15 +1,10 @@
-# tests/test_smoke.py
-
 import pytest
 
-# --- AUTH -----------------------------------------------------------------
 
 def test_signup_route(client):
-    # GET not allowed
     r = client.get("/api/auth/signup")
     assert r.status_code == 405
 
-    # POST → stub
     r = client.post("/api/auth/signup",
                     json={"username":"u","email":"e@e.com","password":"p"})
     assert r.status_code == 200
@@ -34,8 +29,6 @@ def test_current_user_auth(client, auth_header):
     j = r.get_json()
     assert j["id"] == "1" and "username" in j
 
-# --- ANALYTICS ------------------------------------------------------------
-
 ANALYTICS = [
     ("/api/analytics/dashboard",       "total_applications"),
     ("/api/analytics/status-trends",   None),
@@ -57,8 +50,6 @@ def test_analytics_auth(path, key, client, auth_header):
         assert j.get("ok") is True
         if key:
             assert key in j
-
-# --- JOBS -----------------------------------------------------------------
 
 JOB_PATHS = [
     ("/api/jobs",                     "GET"),

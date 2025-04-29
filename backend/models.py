@@ -63,8 +63,8 @@ class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('job_application.id'), nullable=False, unique=True)
     category_id = db.Column(db.Integer, db.ForeignKey('feedback_category.id'), nullable=False)
-    notes = db.Column(db.String(50), nullable=True)  # Short summary (max 50 chars)
-    detailed_feedback = db.Column(db.Text, nullable=True)  # Full feedback
+    notes = db.Column(db.String(50), nullable=True) 
+    detailed_feedback = db.Column(db.Text, nullable=True) 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def serialize(self):
@@ -129,7 +129,7 @@ class QuestionBank(db.Model):
     __tablename__ = 'question_bank'
     id = db.Column(db.Integer, primary_key=True)
     question_text = db.Column(db.String(255), unique=True, nullable=False)
-    category = db.Column(db.String(100), nullable=True)  # Optional, e.g., Technical, Behavioral
+    category = db.Column(db.String(100), nullable=True) 
 
     def serialize(self):
         return {
